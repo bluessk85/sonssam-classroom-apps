@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스마트 자리배치 & 모둠 메이커 프로 | Sonssam EduTech</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --card-hover: #1e2a45;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      --accent-secondary: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --boy-bg: rgba(56, 189, 248, 0.15);
+      --boy-border: #38bdf8;
+      --boy-text: #7dd3fc;
+      --girl-bg: rgba(244, 114, 182, 0.15);
+      --girl-border: #f472b6;
+      --girl-text: #fbcfe8;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 65%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-tool {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-tool:hover {
+      background: #334155;
+      border-color: #475569;
+      transform: translateY(-1px);
+    }
+    .btn-tool.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      color: #a5b4fc;
+    }
+
+    /* Main Container */
+    .app-container {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Control Panel */
+    .control-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .layout-select {
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+    .layout-select:focus { border-color: var(--accent); }
+
+    /* Student Counter Control in Header/Control-Panel */
+    .student-counter-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    .student-count-stepper {
+      display: inline-flex;
+      align-items: center;
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .btn-step {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: none;
+      width: 32px;
+      height: 32px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.18s;
+      user-select: none;
+    }
+    .btn-step:hover {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+    .btn-step:active {
+      transform: scale(0.92);
+    }
+    .student-count-input {
+      width: 44px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      text-align: center;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .student-count-input::-webkit-outer-spin-button,
+    .student-count-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .count-unit {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #94a3b8;
+      padding-right: 8px;
+      user-select: none;
+    }
+    .quick-preset-select {
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      border-color: #334155;
+      background-color: #0f172a;
+    }
+    .btn-preset-chip {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-preset-chip:hover {
+      background: #0284c7;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .btn-preset-chip:active {
+      transform: translateY(0);
+    }
+
+    /* Action Trigger Buttons */
+    .btn-primary-action {
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 18px rgba(79, 70, 229, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-primary-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(79, 70, 229, 0.6);
+    }
+    .btn-primary-action:active { transform: translateY(0); }
+
+    .btn-reveal-slot {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-reveal-slot:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(245, 158, 11, 0.6);
+    }
+    .slot-btn-group {
+      display: inline-flex;
+      align-items: stretch;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.35);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .slot-btn-group:hover {
+      box-shadow: 0 6px 24px rgba(245, 158, 11, 0.55);
+    }
+    .slot-btn-group .btn-reveal-slot {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      box-shadow: none;
+    }
+    .btn-reveal-slot-sub {
+      background: linear-gradient(135deg, #d97706, #b91c1c);
+      color: #fff;
+      border: none;
+      border-left: 1px solid rgba(255, 255, 255, 0.25);
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      padding: 0 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-reveal-slot-sub:hover {
+      filter: brightness(1.15);
+    }
+    .btn-reveal-slot-sub:active {
+      transform: translateY(1px);
+    }
+
+    /* Classroom Stage */
+    .stage-wrapper {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 30px 24px 40px;
+      position: relative;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      box-shadow: inset 0 2px 30px rgba(0,0,0,0.6);
+    }
+
+    /* Blackboard / Teacher Podium */
+    .blackboard-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .blackboard {
+      width: min(640px, 85%);
+      background: linear-gradient(180deg, #134e4a 0%, #064e3b 100%);
+      border: 3px solid #0f766e;
+      border-radius: 12px;
+      padding: 12px 24px;
+      text-align: center;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #a7f3d0;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 0 20px rgba(20,184,166,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .blackboard-sub {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #6ee7b7;
+      opacity: 0.85;
+    }
+
+    /* Classroom Grid */
+    .classroom-grid {
+      display: grid;
+      gap: 16px;
+      justify-content: center;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 1240px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Layout Specific Grid Styles */
+    .layout-pairs-4col {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px 28px;
+    }
+    .layout-pairs-3col {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px 36px;
+    }
+    .layout-groups-6,
+    .layout-groups {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px 36px;
+    }
+    .layout-u-shape {
+      grid-template-columns: repeat(7, 1fr);
+      gap: 14px;
+    }
+    .layout-individual {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+
+    /* Group Cluster Container (for Group layout) */
+    .group-cluster {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1.5px dashed #334155;
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      position: relative;
+    }
+    .group-cluster-title {
+      position: absolute;
+      top: -12px;
+      left: 18px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Pair Block Container (for Pair layout) */
+    .pair-cluster {
+      display: flex;
+      gap: 8px;
+      background: rgba(30, 41, 59, 0.3);
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      min-width: 0;
+    }
+    .pair-cluster .desk {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Desk Unit */
+    .desk {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 14px;
+      height: 106px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 12px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .desk:hover {
+      transform: translateY(-3px) scale(1.02);
+      border-color: #475569;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+    }
+    .desk.selected {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px var(--accent-glow) !important;
+    }
+    .desk.disabled-desk {
+      opacity: 0.35;
+      background: rgba(15, 23, 42, 0.6);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    .desk.pinned {
+      border-color: #f59e0b !important;
+    }
+
+    /* Desk Header */
+    .desk-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .desk-coord {
+      font-family: monospace;
+      font-size: 0.72rem;
+      opacity: 0.75;
+    }
+    .desk-badges {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pin-icon {
+      color: #f59e0b;
+      font-size: 0.8rem;
+    }
+
+    /* Student Body */
+    .student-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      position: relative;
+    }
+
+    /* Covered / Mystery State */
+    .mystery-card {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #475569;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      animation: pulseMystery 2s infinite ease-in-out;
+    }
+    @keyframes pulseMystery {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); color: var(--accent); }
+    }
+
+    /* Slot Spinning State */
+    .slot-spinning {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+      animation: slotShuffle 0.08s infinite linear;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+    @keyframes slotShuffle {
+      0% { transform: translateY(-3px); }
+      50% { transform: translateY(3px); }
+      100% { transform: translateY(-3px); }
+    }
+
+    .desk.just-revealed {
+      animation: deskLockFlash 0.45s ease-out;
+    }
+    @keyframes deskLockFlash {
+      0% { transform: scale(1.06); box-shadow: 0 0 26px #fbbf24; }
+      100% { transform: scale(1); }
+    }
+
+    /* Revealed Student Card */
+    .revealed-student {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .student-name {
+      font-size: 1.22rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .desk.boy .student-name { color: #e0f2fe; }
+    .desk.girl .student-name { color: #fdf2f8; }
+
+    .desk.boy {
+      background: linear-gradient(180deg, #132438 0%, #0d1a2d 100%);
+      border-color: #0369a1;
+    }
+    .desk.girl {
+      background: linear-gradient(180deg, #301728 0%, #200f1b 100%);
+      border-color: #be185d;
+    }
+
+    .student-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .student-num {
+      background: rgba(0,0,0,0.3);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .desk.boy .student-num { color: #38bdf8; }
+    .desk.girl .student-num { color: #f472b6; }
+
+    .gender-pill {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .desk.boy .gender-pill { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .desk.girl .gender-pill { background: rgba(244, 114, 182, 0.2); color: #f472b6; }
+
+    /* Summary Bar */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px 24px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stat-pill {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 4px 10px;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 800;
+      margin-left: 4px;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-dialog {
+      background: #1e293b;
+      border: 1.5px solid #334155;
+      border-radius: 20px;
+      width: min(720px, 94%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      transform: scale(0.95);
+      transition: transform 0.25s;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .modal-backdrop.open .modal-dialog {
+      transform: scale(1);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 14px;
+    }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .btn-close:hover { color: #fff; }
+
+    /* Form Controls inside Modal */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+    .form-textarea {
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 160px;
+      outline: none;
+    }
+    .form-textarea:focus { border-color: var(--accent); }
+
+    /* Rules Modal Elements */
+    .rule-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .rule-desc {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .rule-tag {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .rule-tag.separate { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .rule-tag.pin { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Print Stylesheet */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .top-bar, .control-panel, .summary-bar, .blackboard, .btn-tool, button {
+        display: none !important;
+      }
+      .app-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .stage-wrapper {
+        background: #fff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 10mm 0 !important;
+      }
+      .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .print-header h1 {
+        font-size: 22pt;
+        font-weight: 900;
+        margin-bottom: 6px;
+      }
+      .print-header p {
+        font-size: 11pt;
+        color: #555;
+      }
+      .desk {
+        background: #ffffff !important;
+        border: 2px solid #333333 !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        height: 80px !important;
+      }
+      .student-name {
+        color: #000000 !important;
+        font-size: 14pt !important;
+      }
+      .student-meta {
+        color: #444444 !important;
+      }
+      .group-cluster {
+        background: #fafafa !important;
+        border: 1.5px dashed #666 !important;
+      }
+      .group-cluster-title {
+        background: #fff !important;
+        color: #000 !important;
+        border: 1px solid #666 !important;
+      }
+    }
+    /* Utility */
+    .hidden { display: none !important; }
+
+    /* Custom Freeform Layout Grid */
+    .layout-custom {
+      display: grid;
+      gap: 14px;
+      width: 100%;
+    }
+
+    /* Drag & Drop Visual Styles */
+    .desk {
+      cursor: grab;
+      touch-action: manipulation;
+    }
+    .desk:active {
+      cursor: grabbing;
+    }
+    .desk.dragging {
+      opacity: 0.45;
+      transform: scale(0.94) rotate(-2deg);
+      border-color: var(--accent) !important;
+      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4) !important;
+    }
+    .desk.drag-over {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 8px 25px rgba(56, 189, 248, 0.3) !important;
+      transform: translateY(-4px) scale(1.04);
+      background: rgba(14, 165, 233, 0.2) !important;
+    }
+
+    /* Floating Selection Action Bar */
+    .selection-action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid var(--accent);
+      border-radius: 999px;
+      padding: 10px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-glow);
+      z-index: 90;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .selection-action-bar.open {
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    .selection-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .selection-badge {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .selection-name {
+      font-weight: 900;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .selection-hint {
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+    .selection-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Layout Editor Mode Styles */
+    .layout-editor-banner {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
+      border: 1.5px solid #6366f1;
+      border-radius: 14px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: pulseEditor 2.5s infinite ease-in-out;
+    }
+    @keyframes pulseEditor {
+      0%, 100% { border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+      50% { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.35); }
+    }
+    .banner-text {
+      font-size: 0.9rem;
+      color: #f8fafc;
+    }
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Empty Grid Slot in Editor Mode */
+    .grid-slot {
+      height: 106px;
+      border-radius: 14px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .grid-slot.empty-slot {
+      border: 2px dashed #334155;
+      background: rgba(15, 23, 42, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .grid-slot.empty-slot:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      transform: scale(1.02);
+    }
+    .grid-slot.empty-slot span {
+      font-size: 1.8rem;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .grid-slot.drag-over {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.2) !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    /* Desk controls in layout editor */
+    .desk-delete-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(239, 68, 68, 0.85);
+      color: #fff;
+      border: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .desk-delete-btn:hover {
+      background: #dc2626;
+      transform: scale(1.15);
+    }
+    .desk-gear-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    .desk-gear-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Floating Toast */
+    .seat-toast {
+      position: fixed;
+      top: 76px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      opacity: 0;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      color: #f8fafc;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(56, 189, 248, 0.3);
+      z-index: 100;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .seat-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Unassigned Students Tray */
+    .unassigned-tray {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1.5px dashed #475569;
+      border-radius: 14px;
+      padding: 12px 18px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .unassigned-tray-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .student-chip {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: grab;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .student-chip:hover {
+      border-color: var(--accent);
+      background: #334155;
+      transform: translateY(-2px);
+    }
+    .student-chip.boy { border-color: #0369a1; color: #7dd3fc; }
+    .student-chip.girl { border-color: #be185d; color: #fbcfe8; }
+    .print-header { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="brand">
+      <span>🎯</span>
+      <span>스마트 자리배치 & 모둠 메이커 프로</span>
+      <span class="brand-badge">2026 에듀테크 스위트</span>
+    </div>
+
+    <div class="top-actions">
+      <!-- Viewpoint Toggle -->
+      <button class="btn-tool" id="btnToggleView" title="교탁 기준과 학생 기준 시점을 전환합니다">
+        <span>👁️</span>
+        <span id="viewModeText">교탁(선생님) 기준</span>
+      </button>
+
+      <!-- Sound Toggle -->
+      <button class="btn-tool active" id="btnToggleSound" title="효과음 켜기/끄기">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText">효과음</span>
+      </button>
+
+      <!-- Rules Setup -->
+      <button class="btn-tool" id="btnOpenRules">
+        <span>⚙️</span>
+        <span>스마트 규칙</span>
+      </button>
+
+      <!-- Roster Setup -->
+      <button class="btn-tool" id="btnOpenRoster">
+        <span>👥</span>
+        <span>명단 편집 (23명)</span>
+      </button>
+
+      <!-- Print / Export -->
+      <button class="btn-tool" id="btnPrint">
+        <span>🖨️</span>
+        <span>A4 인쇄</span>
+      </button>
+
+      <!-- Fullscreen -->
+      <button class="btn-tool" id="btnFullscreen">
+        <span>⛶</span>
+        <span>전체화면</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Print Header (only visible on print) -->
+    <div class="print-header">
+      <h1 id="printTitle">교실 좌석 배치표</h1>
+      <p id="printDate">배치 일시: 2026년 | 우리 반 교실</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <!-- Student Count Stepper & Preset -->
+      <div class="control-group student-counter-group">
+        <span class="control-label" style="font-weight: 800; color: #38bdf8;">👥 우리 반 인원:</span>
+        <div class="student-count-stepper">
+          <button class="btn-step" id="btnDecCount" title="학생 1명 줄이기" aria-label="감소">−</button>
+          <input type="number" id="studentCountInput" min="4" max="45" value="24" class="student-count-input" title="학급 인원수 직접 입력">
+          <span class="count-unit">명</span>
+          <button class="btn-step" id="btnIncCount" title="학생 1명 늘리기" aria-label="증가">+</button>
+        </div>
+        <select class="layout-select quick-preset-select" id="quickCountPreset" title="학급 인원수 빠른 선택">
+          <option value="" disabled selected>빠른 선택</option>
+          <option value="16">16명</option>
+          <option value="18">18명</option>
+          <option value="20">20명</option>
+          <option value="21">21명</option>
+          <option value="22">22명</option>
+          <option value="23">23명</option>
+          <option value="24">24명</option>
+          <option value="25">25명</option>
+          <option value="26">26명</option>
+          <option value="27">27명</option>
+          <option value="28">28명</option>
+          <option value="30">30명</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">배치 대형:</span>
+        <select class="layout-select" id="layoutSelect">
+          <option value="pairs-4col">👫 짝꿍형 (4분단 대형)</option>
+          <option value="pairs-3col">👫 짝꿍형 (3분단 대형)</option>
+          <option value="groups">👥 4인 모둠형 (토의·협력학습)</option>
+          <option value="u-shape">🔲 ㄷ자형 (학급 자치·원탁 토론)</option>
+          <option value="individual">👤 1인 1책상 (시험·독립 집중형)</option>
+          <option value="custom">🎨 자유 직접 배치 (커스텀 대형)</option>
+        </select>
+
+        <button class="btn-tool" id="btnToggleEditLayout" title="교실 책상 위치를 직접 마우스로 옮기거나 자유 대형을 만듭니다">
+          <span>🛠️</span>
+          <span id="editLayoutBtnText">자리 직접 이동·편집</span>
+        </button>
+
+        <span class="control-label" style="margin-left: 10px;">성별 규칙:</span>
+        <select class="layout-select" id="genderRuleSelect">
+          <option value="none">자유 무작위</option>
+          <option value="prefer-opposite" selected>남-여 짝꿍 권장</option>
+          <option value="same-gender">동성 짝꿍 (남-남 / 여-여)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <!-- AI Smart Shuffle -->
+        <button class="btn-primary-action" id="btnAutoAssign">
+          <span>🎲</span>
+          <span>스마트 자동 배치</span>
+        </button>
+
+        <!-- Slot Machine Reveal Group -->
+        <div class="slot-btn-group">
+          <button class="btn-reveal-slot" id="btnSlotReveal" title="현재 배치(선생님이 직접 이동한 자리 포함)를 두구두구 슬롯머신으로 공개합니다">
+            <span>🎰</span>
+            <span>두구두구 슬롯 공개!</span>
+          </button>
+          <button class="btn-reveal-slot-sub" id="btnSlotShuffleReveal" title="새로 스마트 무작위 배치 후 슬롯머신으로 공개합니다">
+            <span>🎲 새로 섞기</span>
+          </button>
+        </div>
+
+        <!-- Step-by-Step Reveal -->
+        <button class="btn-tool" id="btnStepReveal">
+          <span>🔍</span>
+          <span>하나씩 공개</span>
+        </button>
+
+        <!-- Instant All Reveal -->
+        <button class="btn-tool" id="btnInstantReveal">
+          <span>⚡</span>
+          <span>즉시 전체 공개</span>
+        </button>
+
+        <!-- Hide All -->
+        <button class="btn-tool" id="btnHideAll" title="모든 자리를 다시 물음표로 가립니다">
+          <span>🙈</span>
+          <span>자리 가리기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Classroom Stage -->
+    <div class="stage-wrapper" id="stageWrapper">
+      <!-- Layout Editor Banner -->
+      <div class="layout-editor-banner hidden" id="layoutEditorBanner">
+        <div class="banner-text">
+          <b>🛠️ 자리 직접 이동·편집 모드:</b> 책상을 드래그하여 원하는 위치로 옮기거나, 빈 칸(<b>+</b>)을 클릭해 책상을 추가하세요.
+        </div>
+        <div class="banner-actions">
+          <button class="btn-tool btn-sm" id="btnAddRow">➕ 줄(행) 추가</button>
+          <button class="btn-tool btn-sm" id="btnResetLayout">🔄 4분단 대형 리셋</button>
+          <button class="btn-primary-action btn-sm" id="btnFinishEditAndAssign">🎲 이 배치대로 학생 자동배치</button>
+          <button class="btn-tool btn-sm" id="btnFinishEdit">✅ 편집 완료</button>
+        </div>
+      </div>
+
+      <!-- Blackboard -->
+      <div class="blackboard-area" id="blackboardArea">
+        <div class="blackboard">
+          <span>칠 판 (전 자 칠 판)</span>
+          <span class="blackboard-sub" id="boardSubText">[교탁 및 교사 시점: 앞쪽]</span>
+        </div>
+      </div>
+
+      <!-- Desk Grid -->
+      <div class="classroom-grid layout-pairs-4col" id="classroomGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Unassigned Students Tray -->
+      <div class="unassigned-tray hidden" id="unassignedTray">
+        <div class="unassigned-tray-title">
+          <span>👥</span>
+          <span>대기 / 미배치 학생:</span>
+        </div>
+        <div class="unassigned-list" id="unassignedList" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Summary Bar -->
+    <div class="summary-bar">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div>총 학생: <span class="stat-pill" id="statTotalStudents">24명</span></div>
+        <div>남학생: <span class="stat-pill" style="color: #38bdf8;" id="statBoys">12명</span></div>
+        <div>여학생: <span class="stat-pill" style="color: #f472b6;" id="statGirls">12명</span></div>
+        <div>배치된 책상: <span class="stat-pill" id="statAssignedDesks">24 / 24</span></div>
+        <div>적용된 규칙: <span class="stat-pill" id="statRulesCount">0개</span></div>
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--text-muted);">
+        💡 <b>Tip:</b> 책상을 드래그하거나 클릭하여 자리를 자유롭게 이동·맞바꿀 수 있습니다. [🛠️ 자리 직접 이동·편집]으로 교실 대형도 마음대로 바꿀 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Roster Modal -->
+  <div class="modal-backdrop" id="modalRoster">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">👥 학생 명단 및 학급 인원수 설정</div>
+        <button class="btn-close" onclick="closeModal('modalRoster')">&times;</button>
+      </div>
+
+      <!-- Quick Count Generator -->
+      <div class="form-group" style="background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="form-label" style="margin: 0; color: #38bdf8; font-weight: 800;">⚡ 학생 수로 즉시 번호 명단 만들기</label>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="number" id="modalStudentCountInput" min="4" max="45" value="24" style="width: 54px; padding: 4px 6px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; text-align: center; font-weight: 700;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">명</span>
+            <button class="btn-tool btn-sm" id="btnGenerateRosterByCount" style="padding: 4px 10px;">⚡ 자동 생성</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-right: 4px;">빠른 선택:</span>
+          <button class="btn-tool btn-preset-chip" data-count="16">16명</button>
+          <button class="btn-tool btn-preset-chip" data-count="18">18명</button>
+          <button class="btn-tool btn-preset-chip" data-count="20">20명</button>
+          <button class="btn-tool btn-preset-chip" data-count="21">21명</button>
+          <button class="btn-tool btn-preset-chip" data-count="22">22명</button>
+          <button class="btn-tool btn-preset-chip" data-count="23">23명</button>
+          <button class="btn-tool btn-preset-chip" data-count="24">24명</button>
+          <button class="btn-tool btn-preset-chip" data-count="25">25명</button>
+          <button class="btn-tool btn-preset-chip" data-count="26">26명</button>
+          <button class="btn-tool btn-preset-chip" data-count="28">28명</button>
+          <button class="btn-tool btn-preset-chip" data-count="30">30명</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="form-label">명단 직접 붙여넣기 (이름 번호 성별 자동 인식)</label>
+          <button class="btn-tool" id="btnLoadSampleRoster" style="font-size: 0.75rem; padding: 4px 10px;">
+            현재 인원 샘플 명단 불러오기
+          </button>
+        </div>
+        <textarea class="form-textarea" id="rosterInput" placeholder="예시 형식:
+1 김민준 남
+2 이서아 여
+3 박도윤 남
+4 정서윤 여
+...
+(쉼표, 공백, 줄바꿈, 나이스 엑셀 복사 모두 지원)"></textarea>
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+          💡 나이스 엑셀이나 한글에서 학생 명단을 복사해 붙여넣으면 학생 수와 성별이 자동 인식되어 대형과 책상이 즉시 맞춰집니다.
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-tool" onclick="closeModal('modalRoster')">취소</button>
+        <button class="btn-primary-action" id="btnSaveRoster">명단 및 인원수 적용하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-backdrop" id="modalRules">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ 스마트 조건 배치 규칙</div>
+        <button class="btn-close" onclick="closeModal('modalRules')">&times;</button>
+      </div>
+
+      <!-- Add Separation Rule -->
+      <div class="form-group">
+        <label class="form-label">🚫 갈등 / 친분 학생 분리 규칙 (짝 및 같은 모둠 금지)</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select class="layout-select" id="sepStudentA" style="flex: 1;"></select>
+          <span style="font-weight: 800; color: #ef4444;">↔</span>
+          <select class="layout-select" id="sepStudentB" style="flex: 1;"></select>
+          <button class="btn-tool" id="btnAddSepRule">규칙 추가</button>
+        </div>
+      </div>
+
+      <!-- Current Rules List -->
+      <div class="form-group">
+        <label class="form-label">현재 등록된 규칙 목록</label>
+        <div id="rulesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+          <div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px;">등록된 특수 규칙이 없습니다.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-primary-action" onclick="closeModal('modalRules')">확인 및 닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desk Action Modal (When Clicking a Desk) -->
+  <div class="modal-backdrop" id="modalDeskAction">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title" id="deskModalTitle">책상 관리</div>
+        <button class="btn-close" onclick="closeModal('modalDeskAction')">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">현재 배치된 학생</label>
+        <div id="deskCurrentStudent" style="font-size: 1.15rem; font-weight: 900; color: #fff; padding: 8px 0;"></div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button class="btn-tool" id="btnTogglePin" style="justify-content: center; padding: 12px;">
+          <span>📌</span>
+          <span id="btnPinText">이 자리에 학생 고정하기</span>
+        </button>
+
+        <button class="btn-tool" id="btnToggleDisabledDesk" style="justify-content: center; padding: 12px; color: #ef4444;">
+          <span>❌</span>
+          <span id="btnDisableText">이 책상 비활성화 (결번/통로)</span>
+        </button>
+
+        <button class="btn-tool" id="btnRevealSingle" style="justify-content: center; padding: 12px;">
+          <span>👁️</span>
+          <span>이 자리만 공개 / 다시 가리기</span>
+        </button>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button class="btn-tool" onclick="closeModal('modalDeskAction')">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Selection Action Bar -->
+  <div class="selection-action-bar" id="selectionActionBar">
+    <div class="selection-info">
+      <span class="selection-badge">선택됨</span>
+      <span class="selection-name" id="selectedStudentName">1번 학생</span>
+      <span class="selection-hint">👉 이동하거나 맞바꿀 다른 자리를 클릭 또는 드래그하세요</span>
+    </div>
+    <div class="selection-buttons">
+      <button class="btn-tool btn-sm" id="btnBarPin">📌 고정</button>
+      <button class="btn-tool btn-sm" id="btnBarDisable">❌ 비활성</button>
+      <button class="btn-tool btn-sm" id="btnBarDetails">⚙️ 관리</button>
+      <button class="btn-tool btn-sm" id="btnBarCancel">취소 (ESC)</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="seat-toast" id="seatToast"></div>
+
+  <!-- Main JavaScript Engine -->
+  <script>
+    // --- State Management ---
+    function generateDefaultRoster(count) {
+      count = Math.max(4, Math.min(45, parseInt(count, 10) || 24));
+      const list = [];
+      for (let i = 1; i <= count; i++) {
+        list.push({
+          id: i,
+          num: i,
+          name: `${i}번 학생`,
+          gender: i % 2 === 1 ? 'F' : 'M'
+        });
+      }
+      return list;
+    }
+
+    const DEFAULT_ROSTER = generateDefaultRoster(24);
+
+    let state = {
+      roster: (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('seat_master_roster'));
+          if (Array.isArray(saved) && saved.length >= 4) {
+            return saved;
+          }
+        } catch (e) {}
+        const savedCount = parseInt(localStorage.getItem('seat_master_student_count') || '24', 10);
+        return generateDefaultRoster(savedCount);
+      })(),
+      layout: localStorage.getItem('seat_master_layout') || 'pairs-4col',
+      genderRule: 'prefer-opposite',
+      viewInverted: false, // false = Teacher view (front top), true = Student view (front bottom)
+      soundEnabled: true,
+      rules: JSON.parse(localStorage.getItem('seat_master_rules')) || [], // { type: 'separate', a: id, b: id }
+      desks: [], // Array of desk objects { id, row, col, studentId, isPinned, isDisabled, isRevealed, slotDisplay }
+      selectedDeskId: null,
+      isAnimating: false,
+      isEditLayoutMode: false,
+      customRows: 5,
+      customCols: 8,
+      draggedDeskId: null
+    };
+
+    function setStudentCount(targetCount, preserveExisting = true) {
+      targetCount = parseInt(targetCount, 10);
+      if (isNaN(targetCount) || targetCount < 4) targetCount = 4;
+      if (targetCount > 45) targetCount = 45;
+
+      const currentCount = state.roster.length;
+      let newRoster = [];
+
+      if (preserveExisting && currentCount > 0) {
+        if (targetCount <= currentCount) {
+          newRoster = state.roster.slice(0, targetCount);
+        } else {
+          newRoster = [...state.roster];
+          for (let i = currentCount + 1; i <= targetCount; i++) {
+            newRoster.push({
+              id: i,
+              num: i,
+              name: `${i}번 학생`,
+              gender: i % 2 === 1 ? 'F' : 'M'
+            });
+          }
+        }
+      } else {
+        newRoster = generateDefaultRoster(targetCount);
+      }
+
+      // Re-normalize IDs and numbers 1..targetCount
+      newRoster.forEach((s, idx) => {
+        s.id = idx + 1;
+        s.num = idx + 1;
+      });
+
+      state.roster = newRoster;
+      localStorage.setItem('seat_master_roster', JSON.stringify(state.roster));
+      localStorage.setItem('seat_master_student_count', String(targetCount));
+
+      // Filter out rules for non-existent students
+      state.rules = state.rules.filter(r => r.a <= targetCount && r.b <= targetCount);
+      localStorage.setItem('seat_master_rules', JSON.stringify(state.rules));
+
+      // Update UI elements
+      const countInput = document.getElementById('studentCountInput');
+      if (countInput) countInput.value = targetCount;
+      const modalCountInput = document.getElementById('modalStudentCountInput');
+      if (modalCountInput) modalCountInput.value = targetCount;
+
+      const openRosterBtn = document.getElementById('btnOpenRoster');
+      if (openRosterBtn) {
+        const textSpan = openRosterBtn.querySelector('span:last-child');
+        if (textSpan) textSpan.textContent = `명단 편집 (${targetCount}명)`;
+      }
+
+      // Re-initialize desks so the room layout adapts to the student count
+      initDesks();
+      runSmartPlacement();
+      showToast(`👥 우리 반 학생 수가 ${targetCount}명으로 설정되었습니다.`);
+    }
+
+    // --- Toast Notification ---
+    let toastTimeout = null;
+    function showToast(msg, duration = 2400) {
+      const toast = document.getElementById('seatToast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    // --- Floating Selection Bar ---
+    function showSelectionBar(desk) {
+      const bar = document.getElementById('selectionActionBar');
+      if (!bar) return;
+      const student = state.roster.find(s => s.id === desk.studentId);
+      const nameEl = document.getElementById('selectedStudentName');
+      if (nameEl) {
+        nameEl.textContent = student ? `${student.num}번 ${student.name}` : `[${desk.label}] (미배치)`;
+      }
+      const pinBtn = document.getElementById('btnBarPin');
+      if (pinBtn) pinBtn.textContent = desk.isPinned ? '📌 고정 해제' : '📌 고정';
+      const disBtn = document.getElementById('btnBarDisable');
+      if (disBtn) disBtn.textContent = desk.isDisabled ? '활성화' : '❌ 비활성';
+      bar.classList.add('open');
+    }
+
+    function hideSelectionBar() {
+      const bar = document.getElementById('selectionActionBar');
+      if (bar) bar.classList.remove('open');
+    }
+
+    // --- Custom Layout & Positioning Helpers ---
+    function saveCustomLayout() {
+      localStorage.setItem('seat_master_custom_desks', JSON.stringify(state.desks));
+      localStorage.setItem('seat_master_custom_rows', String(state.customRows));
+      localStorage.setItem('seat_master_custom_cols', String(state.customCols));
+    }
+
+    function convertCurrentLayoutToCustom() {
+      state.desks.forEach((desk, idx) => {
+        if (desk.row === undefined) desk.row = Math.floor(idx / 8);
+        if (desk.col === undefined) desk.col = idx % 8;
+        desk.label = desk.label || `자리 ${desk.id}`;
+      });
+      state.layout = 'custom';
+      document.getElementById('layoutSelect').value = 'custom';
+      localStorage.setItem('seat_master_layout', 'custom');
+      saveCustomLayout();
+    }
+
+    function moveDeskTo(deskId, targetRow, targetCol) {
+      const desk = state.desks.find(d => d.id === deskId);
+      if (!desk) return;
+      const existing = state.desks.find(d => d.id !== deskId && d.row === targetRow && d.col === targetCol);
+      if (existing) {
+        existing.row = desk.row;
+        existing.col = desk.col;
+      }
+      desk.row = targetRow;
+      desk.col = targetCol;
+      saveCustomLayout();
+      playSound('tick');
+      renderClassroom();
+      showToast(`📍 [${desk.label}] 위치를 (${targetRow + 1}줄 ${targetCol + 1}열)로 옮겼습니다.`);
+    }
+
+    function swapDeskPositions(deskId1, deskId2) {
+      const d1 = state.desks.find(d => d.id === deskId1);
+      const d2 = state.desks.find(d => d.id === deskId2);
+      if (!d1 || !d2) return;
+      const tr = d1.row;
+      const tc = d1.col;
+      d1.row = d2.row;
+      d1.col = d2.col;
+      d2.row = tr;
+      d2.col = tc;
+      saveCustomLayout();
+      playSound('tick');
+      renderClassroom();
+      showToast(`🔄 [${d1.label}]과 [${d2.label}] 위치를 맞바꿨습니다.`);
+    }
+
+    function createDeskAt(row, col) {
+      const newId = (state.desks.reduce((max, d) => Math.max(max, d.id), 0) || 0) + 1;
+      const newDesk = {
+        id: newId,
+        row: row,
+        col: col,
+        label: `책상 ${newId}`,
+        clusterId: `c-${row}-${Math.floor(col / 2)}`,
+        studentId: null,
+        isPinned: false,
+        isDisabled: false,
+        isRevealed: true
+      };
+      state.desks.push(newDesk);
+      saveCustomLayout();
+      playSound('lock');
+      renderClassroom();
+      showToast(`➕ 새 책상(${newDesk.label})이 추가되었습니다.`);
+    }
+
+    function deleteDesk(deskId) {
+      const idx = state.desks.findIndex(d => d.id === deskId);
+      if (idx !== -1) {
+        const deleted = state.desks.splice(idx, 1)[0];
+        saveCustomLayout();
+        playSound('tick');
+        renderClassroom();
+        showToast(`🗑️ [${deleted.label}] 책상을 삭제했습니다.`);
+      }
+    }
+
+    // --- Student Seat Swapping / Moving ---
+    function moveOrSwapStudent(srcDeskId, targetDeskId) {
+      const srcDesk = state.desks.find(d => d.id === srcDeskId);
+      const targetDesk = state.desks.find(d => d.id === targetDeskId);
+      if (!srcDesk || !targetDesk) return;
+      if (srcDesk.isDisabled || targetDesk.isDisabled) return;
+
+      const studentA = state.roster.find(s => s.id === srcDesk.studentId);
+      const studentB = state.roster.find(s => s.id === targetDesk.studentId);
+
+      const temp = srcDesk.studentId;
+      srcDesk.studentId = targetDesk.studentId;
+      targetDesk.studentId = temp;
+
+      srcDesk.isRevealed = true;
+      targetDesk.isRevealed = true;
+
+      playSound('lock');
+      state.selectedDeskId = null;
+      hideSelectionBar();
+      renderClassroom();
+
+      if (studentA && studentB) {
+        showToast(`🔄 [${studentA.num}번 ${studentA.name}] ↔ [${studentB.num}번 ${studentB.name}] 자리 교환 완료!`);
+      } else if (studentA && !studentB) {
+        showToast(`➡️ [${studentA.num}번 ${studentA.name}] 학생이 [${targetDesk.label}] 자리로 이동했습니다.`);
+      } else if (!studentA && studentB) {
+        showToast(`➡️ [${studentB.num}번 ${studentB.name}] 학생이 [${srcDesk.label}] 자리로 이동했습니다.`);
+      }
+    }
+
+    function assignStudentToDesk(studentId, targetDeskId) {
+      const targetDesk = state.desks.find(d => d.id === targetDeskId);
+      if (!targetDesk || targetDesk.isDisabled) return;
+
+      const oldDesk = state.desks.find(d => d.studentId === studentId);
+      if (oldDesk) {
+        oldDesk.studentId = targetDesk.studentId;
+      }
+      targetDesk.studentId = studentId;
+      targetDesk.isRevealed = true;
+
+      const student = state.roster.find(s => s.id === studentId);
+      playSound('lock');
+      renderClassroom();
+      if (student) {
+        showToast(`📌 [${student.num}번 ${student.name}] 학생을 [${targetDesk.label}]에 배치했습니다.`);
+      }
+    }
+
+    function unassignStudent(studentId) {
+      const desk = state.desks.find(d => d.studentId === studentId);
+      if (desk) {
+        desk.studentId = null;
+        const student = state.roster.find(s => s.id === studentId);
+        playSound('tick');
+        renderClassroom();
+        if (student) {
+          showToast(`대기석으로 이동: [${student.num}번 ${student.name}]`);
+        }
+      }
+    }
+
+    // --- Web Audio Synthesizer ---
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!state.soundEnabled || (window.isSonssamAudioMuted && window.isSonssamAudioMuted())) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'tick') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.04);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'drumroll') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(80, now);
+          osc.frequency.linearRampToValueAtTime(140, now + 0.1);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (type === 'lock') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'fanfare') {
+          const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+            gain.gain.setValueAtTime(0, now + idx * 0.09);
+            gain.gain.linearRampToValueAtTime(0.3, now + idx * 0.09 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.09 + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.09);
+            osc.stop(now + idx * 0.09 + 0.35);
+          });
+        }
+      } catch (e) {
+        console.warn("Audio synthesis error:", e);
+      }
+    }
+
+    // --- Confetti Engine ---
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiAnimationId = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerConfetti() {
+      confettiParticles = [];
+      const colors = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#ffffff'];
+      for (let i = 0; i < 120; i++) {
+        confettiParticles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 18,
+          vy: (Math.random() - 0.5) * 18 - 4,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 12,
+          alpha: 1,
+          gravity: 0.28
+        });
+      }
+      if (!confettiAnimationId) {
+        animateConfetti();
+      }
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rotation += p.rotationSpeed;
+        p.alpha -= 0.007;
+
+        if (p.alpha > 0) {
+          alive = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        }
+      });
+
+      if (alive) {
+        confettiAnimationId = requestAnimationFrame(animateConfetti);
+      } else {
+        cancelAnimationFrame(confettiAnimationId);
+        confettiAnimationId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // --- Layout Generation ---
+    function initDesks() {
+      let newDesks = [];
+      const N = Math.max(1, state.roster.length);
+
+      if (state.layout === 'pairs-4col') {
+        // 4 divisions (8 desks per row)
+        const cols = 8;
+        const rows = Math.max(2, Math.ceil(N / 8));
+        let idCounter = 1;
+        let activeCount = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const bun = Math.floor(c / 2) + 1;
+            const side = c % 2 === 0 ? "좌" : "우";
+            const isActive = activeCount < N;
+            if (isActive) activeCount++;
+            newDesks.push({
+              id: idCounter,
+              row: r,
+              col: c,
+              label: `${bun}분단 ${r + 1}열 ${side}`,
+              clusterId: `${bun}분단-${r}`,
+              studentId: null,
+              isPinned: false,
+              isDisabled: !isActive,
+              isRevealed: true,
+              slotDisplay: null
+            });
+            idCounter++;
+          }
+        }
+      } else if (state.layout === 'pairs-3col') {
+        // 3 divisions (6 desks per row)
+        const cols = 6;
+        const rows = Math.max(2, Math.ceil(N / 6));
+        let idCounter = 1;
+        let activeCount = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const bun = Math.floor(c / 2) + 1;
+            const side = c % 2 === 0 ? "좌" : "우";
+            const isActive = activeCount < N;
+            if (isActive) activeCount++;
+            newDesks.push({
+              id: idCounter,
+              row: r,
+              col: c,
+              label: `${bun}분단 ${r + 1}열 ${side}`,
+              clusterId: `${bun}분단-${r}`,
+              studentId: null,
+              isPinned: false,
+              isDisabled: !isActive,
+              isRevealed: true,
+              slotDisplay: null
+            });
+            idCounter++;
+          }
+        }
+      } else if (state.layout === 'groups-6' || state.layout === 'groups') {
+        // 4-member groups, dynamic group count
+        const numGroups = Math.max(2, Math.ceil(N / 4));
+        let idCounter = 1;
+        let activeCount = 0;
+        for (let g = 1; g <= numGroups; g++) {
+          const gRow = Math.floor((g - 1) / 3) * 3;
+          const gCol = ((g - 1) % 3) * 3;
+          for (let pos = 1; pos <= 4; pos++) {
+            const pr = pos <= 2 ? 0 : 1;
+            const pc = (pos - 1) % 2;
+            const isActive = activeCount < N;
+            if (isActive) activeCount++;
+            newDesks.push({
+              id: idCounter,
+              group: g,
+              pos: pos,
+              row: gRow + pr,
+              col: gCol + pc,
+              label: `${g}모둠 ${pos}번`,
+              clusterId: `group-${g}`,
+              studentId: null,
+              isPinned: false,
+              isDisabled: !isActive,
+              isRevealed: true,
+              slotDisplay: null
+            });
+            idCounter++;
+          }
+        }
+      } else if (state.layout === 'u-shape') {
+        // U-shape dynamically sized to N
+        let idCounter = 1;
+        const frontCount = Math.max(2, Math.round(N * 0.35));
+        const sideTotal = N - frontCount;
+        const leftCount = Math.ceil(sideTotal / 2);
+        const rightCount = sideTotal - leftCount;
+
+        // Front desks (row 0)
+        for (let c = 0; c < frontCount; c++) {
+          newDesks.push({
+            id: idCounter++,
+            row: 0,
+            col: c,
+            label: `앞쪽 ${c + 1}번`,
+            clusterId: 'u-shape-top',
+            studentId: null,
+            isPinned: false,
+            isDisabled: false,
+            isRevealed: true
+          });
+        }
+        // Left side desks (r = 1..leftCount, col 0)
+        for (let r = 1; r <= leftCount; r++) {
+          newDesks.push({
+            id: idCounter++,
+            row: r,
+            col: 0,
+            label: `왼쪽 ${r}열`,
+            clusterId: 'u-shape-left',
+            studentId: null,
+            isPinned: false,
+            isDisabled: false,
+            isRevealed: true
+          });
+        }
+        // Right side desks (r = 1..rightCount, col rightCol)
+        const rightCol = Math.max(frontCount - 1, 4);
+        for (let r = 1; r <= rightCount; r++) {
+          newDesks.push({
+            id: idCounter++,
+            row: r,
+            col: rightCol,
+            label: `오른쪽 ${r}열`,
+            clusterId: 'u-shape-right',
+            studentId: null,
+            isPinned: false,
+            isDisabled: false,
+            isRevealed: true
+          });
+        }
+      } else if (state.layout === 'individual') {
+        const cols = N <= 16 ? 4 : (N > 30 ? 6 : 5);
+        const rows = Math.max(2, Math.ceil(N / cols));
+        let idCounter = 1;
+        let activeCount = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const isActive = activeCount < N;
+            if (isActive) activeCount++;
+            newDesks.push({
+              id: idCounter,
+              row: r,
+              col: c,
+              label: `${c + 1}분단 ${r + 1}열`,
+              clusterId: 'indiv',
+              studentId: null,
+              isPinned: false,
+              isDisabled: !isActive,
+              isRevealed: true,
+              slotDisplay: null
+            });
+            idCounter++;
+          }
+        }
+      } else if (state.layout === 'custom') {
+        const savedCustom = localStorage.getItem('seat_master_custom_desks');
+        if (savedCustom) {
+          try {
+            const parsed = JSON.parse(savedCustom);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              newDesks = parsed;
+            }
+          } catch (e) {}
+        }
+        if (newDesks.length === 0) {
+          const cols = 8;
+          const rows = Math.max(2, Math.ceil(N / 8));
+          let idCounter = 1;
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              if (idCounter <= N) {
+                newDesks.push({
+                  id: idCounter,
+                  row: r,
+                  col: c,
+                  label: `자리 ${idCounter}`,
+                  clusterId: `custom-cluster-${r}-${Math.floor(c / 2)}`,
+                  studentId: null,
+                  isPinned: false,
+                  isDisabled: false,
+                  isRevealed: true
+                });
+                idCounter++;
+              }
+            }
+          }
+        } else {
+          // If custom desks are fewer than N, automatically add desks
+          const activeCount = newDesks.filter(d => !d.isDisabled).length;
+          if (activeCount < N) {
+            const needed = N - activeCount;
+            let added = 0;
+            for (let d of newDesks) {
+              if (d.isDisabled && added < needed) {
+                d.isDisabled = false;
+                added++;
+              }
+            }
+            while (added < needed) {
+              const maxR = Math.max(...newDesks.map(d => d.row || 0), 0);
+              const maxId = Math.max(...newDesks.map(d => d.id || 0), 0) + 1;
+              newDesks.push({
+                id: maxId,
+                row: maxR + 1,
+                col: added % 8,
+                label: `자리 ${maxId}`,
+                clusterId: `custom-extra`,
+                studentId: null,
+                isPinned: false,
+                isDisabled: false,
+                isRevealed: true
+              });
+              added++;
+            }
+          }
+        }
+      }
+
+      state.desks = newDesks;
+      const maxR = Math.max(...state.desks.map(d => d.row || 0), 2);
+      const maxC = Math.max(...state.desks.map(d => d.col || 0), 7);
+      state.customRows = Math.max(state.customRows || 5, maxR + 2);
+      state.customCols = Math.max(state.customCols || 8, maxC + 1);
+    }
+
+    // --- Smart Placement Algorithm ---
+    function runSmartPlacement() {
+      // 1. Available desks (not disabled)
+      let availableDesks = state.desks.filter(d => !d.isDisabled);
+      if (availableDesks.length < state.roster.length) {
+        // Auto-heal: enable disabled desks or re-init
+        const disabledDesks = state.desks.filter(d => d.isDisabled);
+        const needed = state.roster.length - availableDesks.length;
+        for (let i = 0; i < Math.min(needed, disabledDesks.length); i++) {
+          disabledDesks[i].isDisabled = false;
+        }
+        availableDesks = state.desks.filter(d => !d.isDisabled);
+        if (availableDesks.length < state.roster.length) {
+          initDesks();
+          availableDesks = state.desks.filter(d => !d.isDisabled);
+        }
+      }
+
+      // 2. Identify pinned assignments
+      let assignedStudents = new Set();
+      let deskAssignments = {};
+
+      state.desks.forEach(desk => {
+        if (desk.isPinned && desk.studentId) {
+          deskAssignments[desk.id] = desk.studentId;
+          assignedStudents.add(desk.studentId);
+        } else {
+          deskAssignments[desk.id] = null;
+        }
+      });
+
+      // 3. Students needing placement
+      let unassigned = state.roster.filter(s => !assignedStudents.has(s.id));
+      let freeDesks = availableDesks.filter(d => !deskAssignments[d.id]);
+
+      // Prioritize front rows when picking which desks to assign
+      let poolOfDesks = [...freeDesks];
+      if (poolOfDesks.length > unassigned.length) {
+        poolOfDesks.sort((a, b) => {
+          const ra = a.row !== undefined ? a.row : 0;
+          const rb = b.row !== undefined ? b.row : 0;
+          if (ra !== rb) return ra - rb;
+          return (a.col !== undefined ? a.col : 0) - (b.col !== undefined ? b.col : 0);
+        });
+        poolOfDesks = poolOfDesks.slice(0, unassigned.length);
+      }
+
+      // 4. Separation constraints
+      const sepRules = state.rules.filter(r => r.type === 'separate');
+
+      function isSameCluster(d1, d2) {
+        if (!d1 || !d2) return false;
+        if (d1.clusterId && d2.clusterId && d1.clusterId === d2.clusterId) return true;
+        if (d1.row !== undefined && d2.row !== undefined && d1.col !== undefined && d2.col !== undefined) {
+          const rowDiff = Math.abs(d1.row - d2.row);
+          const colDiff = Math.abs(d1.col - d2.col);
+          if (rowDiff <= 1 && colDiff <= 1) return true;
+        }
+        return false;
+      }
+
+      // 5. Intelligent Shuffle with Backtracking / Score Retries
+      let bestPlacement = null;
+      let minConflicts = 9999;
+
+      for (let attempt = 0; attempt < 60; attempt++) {
+        let currentAssigned = { ...deskAssignments };
+        let shuffledStudents = [...unassigned].sort(() => Math.random() - 0.5);
+
+        // Gender balance ordering if prefer-opposite
+        if (state.genderRule === 'prefer-opposite' && (state.layout.startsWith('pairs') || state.layout.startsWith('groups') || state.layout === 'custom')) {
+          const boys = shuffledStudents.filter(s => s.gender === 'M');
+          const girls = shuffledStudents.filter(s => s.gender === 'F');
+          shuffledStudents = [];
+          const maxLen = Math.max(boys.length, girls.length);
+          for (let i = 0; i < maxLen; i++) {
+            if (boys[i]) shuffledStudents.push(boys[i]);
+            if (girls[i]) shuffledStudents.push(girls[i]);
+          }
+        }
+
+        let conflicts = 0;
+        let deskPool = [...poolOfDesks].sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < shuffledStudents.length; i++) {
+          const student = shuffledStudents[i];
+          const desk = deskPool[i];
+          if (desk) {
+            currentAssigned[desk.id] = student.id;
+          }
+        }
+
+        // Evaluate conflicts
+        sepRules.forEach(rule => {
+          let deskA = state.desks.find(d => currentAssigned[d.id] === rule.a);
+          let deskB = state.desks.find(d => currentAssigned[d.id] === rule.b);
+          if (deskA && deskB && isSameCluster(deskA, deskB)) {
+            conflicts += 10;
+          }
+        });
+
+        if (conflicts < minConflicts) {
+          minConflicts = conflicts;
+          bestPlacement = currentAssigned;
+          if (conflicts === 0) break;
+        }
+      }
+
+      // Apply best placement
+      state.desks.forEach(desk => {
+        desk.studentId = (bestPlacement && bestPlacement[desk.id]) || null;
+      });
+
+      renderClassroom();
+      updateSummary();
+    }
+
+    // --- Slot Machine Reveal Effect ---
+    function startSlotReveal(options = {}) {
+      if (state.isAnimating) return;
+
+      // Complete layout edit mode if active
+      if (state.isEditLayoutMode) {
+        state.isEditLayoutMode = false;
+        saveCustomLayout();
+      }
+
+      const forceShuffle = options && options.shuffle === true;
+      const assignedCount = state.desks.filter(d => !d.isDisabled && d.studentId).length;
+
+      // If user requested fresh smart placement or no desks are assigned yet, run smart placement
+      if (forceShuffle || assignedCount === 0) {
+        runSmartPlacement();
+      } else {
+        // If some students were left unassigned in the tray, assign them to empty desks without disturbing assigned ones
+        const assignedStudentIds = new Set(state.desks.filter(d => !d.isDisabled && d.studentId).map(d => d.studentId));
+        const unassignedStudents = state.roster.filter(s => !assignedStudentIds.has(s.id));
+        const emptyDesks = state.desks.filter(d => !d.isDisabled && !d.studentId);
+        if (unassignedStudents.length > 0 && emptyDesks.length > 0) {
+          unassignedStudents.forEach((st, idx) => {
+            if (emptyDesks[idx]) {
+              emptyDesks[idx].studentId = st.id;
+            }
+          });
+          updateSummary();
+        }
+      }
+
+      // Collect all desks with assigned students
+      const activeDesks = state.desks.filter(d => !d.isDisabled && d.studentId);
+      if (activeDesks.length === 0) {
+        showToast('⚠️ 배정할 학생이나 사용 가능한 책상이 없습니다.');
+        return;
+      }
+
+      state.isAnimating = true;
+
+      // Systematic reveal order: front-to-back, left-to-right (respects custom coordinates)
+      activeDesks.sort((a, b) => {
+        const ra = a.row !== undefined ? a.row : 0;
+        const rb = b.row !== undefined ? b.row : 0;
+        if (ra !== rb) return ra - rb;
+        const ca = a.col !== undefined ? a.col : 0;
+        const cb = b.col !== undefined ? b.col : 0;
+        return ca - cb;
+      });
+
+      // Cover all desks initially with mystery state
+      state.desks.forEach(d => {
+        d.isRevealed = false;
+        d.slotDisplay = null;
+      });
+      renderClassroom();
+
+      const studentNames = state.roster.map(s => s.name);
+      if (studentNames.length === 0) studentNames.push('학생');
+
+      // Audio ticking
+      const tickInterval = setInterval(() => {
+        playSound('tick');
+      }, 75);
+
+      // Fast name cycling on spinning desks
+      const spinInterval = setInterval(() => {
+        activeDesks.forEach(desk => {
+          if (!desk.isRevealed) {
+            const deskEl = document.getElementById(`desk-${desk.id}`);
+            if (deskEl) {
+              const contentEl = deskEl.querySelector('.student-content');
+              if (contentEl) {
+                const randomName = studentNames[Math.floor(Math.random() * studentNames.length)];
+                contentEl.innerHTML = `<div class="slot-spinning">${randomName}</div>`;
+              }
+            }
+          }
+        });
+      }, 55);
+
+      // Sequentially lock each desk with tension and precision
+      let completed = 0;
+      const baseDelay = 500;
+      const stepDelay = Math.max(120, Math.min(240, Math.floor(5500 / activeDesks.length)));
+
+      activeDesks.forEach((desk, index) => {
+        setTimeout(() => {
+          desk.isRevealed = true;
+          playSound('lock');
+          renderSingleDesk(desk);
+
+          const el = document.getElementById(`desk-${desk.id}`);
+          if (el) {
+            el.classList.add('just-revealed');
+            setTimeout(() => el.classList.remove('just-revealed'), 450);
+          }
+
+          completed++;
+          if (completed === activeDesks.length) {
+            clearInterval(tickInterval);
+            clearInterval(spinInterval);
+            state.isAnimating = false;
+            playSound('fanfare');
+            triggerConfetti();
+            showToast('🎉 모든 자리 배치가 완료 및 공개되었습니다!');
+          }
+        }, baseDelay + index * stepDelay);
+      });
+    }
+
+    // --- Step-by-Step Reveal ---
+    function revealNextStep() {
+      if (state.isAnimating) return;
+
+      // Auto-assign if completely unassigned
+      const assignedCount = state.desks.filter(d => !d.isDisabled && d.studentId).length;
+      if (assignedCount === 0) {
+        runSmartPlacement();
+        state.desks.forEach(d => d.isRevealed = false);
+        renderClassroom();
+      }
+
+      const unrevealed = state.desks.filter(d => !d.isDisabled && d.studentId && !d.isRevealed);
+      if (unrevealed.length === 0) {
+        playSound('fanfare');
+        triggerConfetti();
+        showToast('🎉 모든 자리가 공개되었습니다.');
+        return;
+      }
+
+      // Natural row-by-row step reveal
+      unrevealed.sort((a, b) => {
+        const ra = a.row !== undefined ? a.row : 0;
+        const rb = b.row !== undefined ? b.row : 0;
+        if (ra !== rb) return ra - rb;
+        return (a.col !== undefined ? a.col : 0) - (b.col !== undefined ? b.col : 0);
+      });
+
+      const target = unrevealed[0];
+      target.isRevealed = true;
+      playSound('lock');
+      renderSingleDesk(target);
+
+      const targetEl = document.getElementById(`desk-${target.id}`);
+      if (targetEl) {
+        targetEl.classList.add('just-revealed');
+        setTimeout(() => targetEl.classList.remove('just-revealed'), 450);
+      }
+
+      if (unrevealed.length === 1) {
+        setTimeout(() => {
+          playSound('fanfare');
+          triggerConfetti();
+        }, 300);
+      }
+    }
+
+    // --- Touch drag support for Smartboards and iPads ---
+    let touchDragData = null;
+    let touchClone = null;
+
+    function attachTouchHandlers(el, desk) {
+      el.addEventListener('touchstart', (e) => {
+        if (state.isAnimating || state.isEditLayoutMode) return;
+        const touch = e.touches[0];
+        touchDragData = { deskId: desk.id, startX: touch.clientX, startY: touch.clientY };
+      }, { passive: true });
+
+      el.addEventListener('touchmove', (e) => {
+        if (!touchDragData) return;
+        const touch = e.touches[0];
+        const dist = Math.hypot(touch.clientX - touchDragData.startX, touch.clientY - touchDragData.startY);
+        if (dist > 10 && !touchClone) {
+          touchClone = el.cloneNode(true);
+          touchClone.style.position = 'fixed';
+          touchClone.style.zIndex = '9999';
+          touchClone.style.pointerEvents = 'none';
+          touchClone.style.opacity = '0.85';
+          touchClone.style.transform = 'scale(0.92) rotate(-2deg)';
+          touchClone.style.width = el.offsetWidth + 'px';
+          touchClone.style.height = el.offsetHeight + 'px';
+          document.body.appendChild(touchClone);
+        }
+        if (touchClone) {
+          touchClone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+          touchClone.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
+
+          const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+          const targetDeskEl = elem ? elem.closest('.desk') : null;
+          document.querySelectorAll('.desk.drag-over').forEach(d => d.classList.remove('drag-over'));
+          if (targetDeskEl && targetDeskEl !== el) {
+            targetDeskEl.classList.add('drag-over');
+          }
+        }
+      }, { passive: true });
+
+      el.addEventListener('touchend', (e) => {
+        if (touchClone) {
+          touchClone.remove();
+          touchClone = null;
+        }
+        document.querySelectorAll('.desk.drag-over').forEach(d => d.classList.remove('drag-over'));
+        if (touchDragData) {
+          const touch = e.changedTouches[0];
+          const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+          const targetDeskEl = elem ? elem.closest('.desk') : null;
+          if (targetDeskEl) {
+            const targetId = parseInt(targetDeskEl.id.replace('desk-', ''), 10);
+            if (targetId && targetId !== touchDragData.deskId) {
+              moveOrSwapStudent(touchDragData.deskId, targetId);
+            }
+          }
+          touchDragData = null;
+        }
+      });
+    }
+
+    // --- Render Functions ---
+    function renderClassroom() {
+      const grid = document.getElementById('classroomGrid');
+      grid.innerHTML = '';
+
+      // Update banner & toggle button
+      const banner = document.getElementById('layoutEditorBanner');
+      if (banner) banner.classList.toggle('hidden', !state.isEditLayoutMode);
+
+      const editBtn = document.getElementById('btnToggleEditLayout');
+      if (editBtn) {
+        editBtn.classList.toggle('active', state.isEditLayoutMode);
+        document.getElementById('editLayoutBtnText').textContent = state.isEditLayoutMode ? '자리 편집 완료' : '자리 직접 이동·편집';
+      }
+
+      // Inverted view transform
+      if (state.viewInverted) {
+        grid.style.transform = 'rotate(180deg)';
+        document.getElementById('boardSubText').textContent = '[학생 시점: 뒤쪽에서 칠판을 바라봄]';
+      } else {
+        grid.style.transform = 'none';
+        document.getElementById('boardSubText').textContent = '[교탁 및 교사 시점: 앞쪽]';
+      }
+
+      if (state.isEditLayoutMode) {
+        // Layout Editor Mode: Grid of rows x cols
+        grid.className = 'classroom-grid layout-custom edit-mode';
+        grid.style.gridTemplateColumns = `repeat(${state.customCols}, 1fr)`;
+
+        const maxR = state.customRows || 5;
+        const maxC = state.customCols || 8;
+
+        for (let r = 0; r < maxR; r++) {
+          for (let c = 0; c < maxC; c++) {
+            const desk = state.desks.find(d => d.row === r && d.col === c);
+            if (desk) {
+              const deskEl = createDeskElement(desk);
+              // Add delete button
+              const delBtn = document.createElement('button');
+              delBtn.className = 'desk-delete-btn';
+              delBtn.innerHTML = '&times;';
+              delBtn.title = '이 책상 삭제';
+              delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteDesk(desk.id);
+              });
+              deskEl.appendChild(delBtn);
+              deskEl.style.gridRow = `${r + 1}`;
+              deskEl.style.gridColumn = `${c + 1}`;
+              grid.appendChild(deskEl);
+            } else {
+              // Empty slot
+              const slot = document.createElement('div');
+              slot.className = 'grid-slot empty-slot';
+              slot.style.gridRow = `${r + 1}`;
+              slot.style.gridColumn = `${c + 1}`;
+              slot.innerHTML = `<span>+</span>`;
+              slot.title = '클릭하여 책상 추가 또는 다른 책상을 여기로 드래그';
+
+              slot.addEventListener('click', () => {
+                createDeskAt(r, c);
+              });
+
+              slot.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                slot.classList.add('drag-over');
+              });
+              slot.addEventListener('dragleave', () => {
+                slot.classList.remove('drag-over');
+              });
+              slot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                slot.classList.remove('drag-over');
+                const deskId = parseInt(e.dataTransfer.getData('deskId') || state.draggedDeskId, 10);
+                if (deskId) {
+                  moveDeskTo(deskId, r, c);
+                }
+              });
+
+              grid.appendChild(slot);
+            }
+          }
+        }
+      } else if (state.layout === 'custom') {
+        // Normal mode, custom layout
+        grid.className = 'classroom-grid layout-custom';
+        grid.style.gridTemplateColumns = `repeat(${state.customCols}, 1fr)`;
+
+        state.desks.forEach(desk => {
+          const deskEl = createDeskElement(desk);
+          if (desk.row !== undefined && desk.col !== undefined) {
+            deskEl.style.gridRow = `${desk.row + 1}`;
+            deskEl.style.gridColumn = `${desk.col + 1}`;
+          }
+          grid.appendChild(deskEl);
+        });
+      } else if (state.layout === 'pairs-4col' || state.layout === 'pairs-3col') {
+        const numCols = state.layout === 'pairs-4col' ? 4 : 3;
+        grid.className = `classroom-grid layout-${state.layout}`;
+        grid.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+
+        const maxR = Math.max(...state.desks.map(d => d.row || 0), 0);
+        for (let r = 0; r <= maxR; r++) {
+          for (let bun = 1; bun <= numCols; bun++) {
+            const pairDesks = state.desks.filter(d => d.row === r && Math.floor(d.col / 2) + 1 === bun);
+            if (pairDesks.length > 0) {
+              const clusterEl = document.createElement('div');
+              clusterEl.className = 'pair-cluster';
+              pairDesks.sort((a, b) => a.col - b.col);
+              pairDesks.forEach(desk => {
+                clusterEl.appendChild(createDeskElement(desk));
+              });
+              grid.appendChild(clusterEl);
+            }
+          }
+        }
+      } else if (state.layout.startsWith('groups')) {
+        const groupIds = [...new Set(state.desks.map(d => d.group).filter(Boolean))].sort((a, b) => a - b);
+        grid.className = `classroom-grid layout-groups-6`;
+        const numG = groupIds.length;
+        if (numG <= 4) {
+          grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        } else if (numG <= 6) {
+          grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        } else {
+          grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        }
+
+        groupIds.forEach(g => {
+          const clusterEl = document.createElement('div');
+          clusterEl.className = 'group-cluster';
+          clusterEl.innerHTML = `<div class="group-cluster-title">${g}모둠</div>`;
+
+          const groupDesks = state.desks.filter(d => d.group === g).sort((a, b) => (a.pos || 0) - (b.pos || 0));
+          groupDesks.forEach(desk => {
+            clusterEl.appendChild(createDeskElement(desk));
+          });
+          grid.appendChild(clusterEl);
+        });
+      } else if (state.layout === 'u-shape') {
+        grid.className = `classroom-grid layout-u-shape`;
+        const maxC = Math.max(...state.desks.map(d => d.col || 0), 6);
+        grid.style.gridTemplateColumns = `repeat(${maxC + 1}, 1fr)`;
+        state.desks.forEach(desk => {
+          const deskEl = createDeskElement(desk);
+          if (desk.row !== undefined && desk.col !== undefined) {
+            deskEl.style.gridRow = `${desk.row + 1}`;
+            deskEl.style.gridColumn = `${desk.col + 1}`;
+          }
+          grid.appendChild(deskEl);
+        });
+      } else if (state.layout === 'individual') {
+        grid.className = `classroom-grid layout-individual`;
+        const maxC = Math.max(...state.desks.map(d => d.col || 0), 4);
+        grid.style.gridTemplateColumns = `repeat(${maxC + 1}, 1fr)`;
+        state.desks.forEach(desk => {
+          grid.appendChild(createDeskElement(desk));
+        });
+      } else {
+        // Standard linear grid
+        grid.className = `classroom-grid layout-${state.layout}`;
+        state.desks.forEach(desk => {
+          grid.appendChild(createDeskElement(desk));
+        });
+      }
+
+      // Render Unassigned Students Tray
+      renderUnassignedTray();
+      updateSummary();
+    }
+
+    function createDeskElement(desk) {
+      const el = document.createElement('div');
+      el.className = 'desk';
+      el.id = `desk-${desk.id}`;
+
+      if (desk.isDisabled) el.classList.add('disabled-desk');
+      if (desk.isPinned) el.classList.add('pinned');
+      if (state.selectedDeskId === desk.id) el.classList.add('selected');
+
+      // Preserve grid coordinates for custom & u-shape layouts or edit mode
+      if (desk.row !== undefined && desk.col !== undefined && (state.layout === 'custom' || state.layout === 'u-shape' || state.isEditLayoutMode)) {
+        el.style.gridRow = `${desk.row + 1}`;
+        el.style.gridColumn = `${desk.col + 1}`;
+      }
+
+      const student = state.roster.find(s => s.id === desk.studentId);
+      if (student && desk.isRevealed) {
+        el.classList.add(student.gender === 'M' ? 'boy' : 'girl');
+      }
+
+      // Keep text upright even when inverted
+      if (state.viewInverted) {
+        el.style.transform = 'rotate(180deg)';
+      }
+
+      // Desk Header
+      const header = document.createElement('div');
+      header.className = 'desk-header';
+      header.innerHTML = `
+        <span class="desk-coord">${desk.label}</span>
+        <span class="desk-badges">
+          ${desk.isPinned ? '<span class="pin-icon" title="고정 좌석">📌</span>' : ''}
+          ${desk.isDisabled ? '<span style="color:#ef4444;">X</span>' : ''}
+          ${!state.isEditLayoutMode ? '<button class="desk-gear-btn" title="책상 관리 및 설정">⚙️</button>' : ''}
+        </span>
+      `;
+      const gearBtn = header.querySelector('.desk-gear-btn');
+      if (gearBtn) {
+        gearBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openDeskModal(desk);
+        });
+      }
+      el.appendChild(header);
+
+      // Student Content
+      const content = document.createElement('div');
+      content.className = 'student-content';
+
+      if (desk.isDisabled) {
+        content.innerHTML = `<div style="font-size: 0.8rem; font-weight: 700; color: #64748b;">(비활성 통로)</div>`;
+      } else if (!desk.studentId) {
+        content.innerHTML = `<div style="font-size: 0.82rem; font-weight: 700; color: #475569;">(빈 자리)</div>`;
+      } else if (!desk.isRevealed) {
+        content.innerHTML = `<div class="mystery-card">?</div>`;
+      } else {
+        content.innerHTML = `
+          <div class="revealed-student">
+            <div class="student-name">${student ? student.name : '미배정'}</div>
+            <div class="student-meta">
+              <span class="student-num">${student ? student.num + '번' : ''}</span>
+              <span class="gender-pill">${student ? (student.gender === 'M' ? '남' : '여') : ''}</span>
+            </div>
+          </div>
+        `;
+      }
+      el.appendChild(content);
+
+      // HTML5 Drag and drop
+      el.draggable = !state.isAnimating;
+
+      el.addEventListener('dragstart', (e) => {
+        if (state.isAnimating) { e.preventDefault(); return; }
+        if (state.isEditLayoutMode) {
+          state.draggedDeskId = desk.id;
+          e.dataTransfer.setData('type', 'desk-reposition');
+          e.dataTransfer.setData('deskId', String(desk.id));
+        } else {
+          state.draggedDeskId = desk.id;
+          e.dataTransfer.setData('type', 'student-swap');
+          e.dataTransfer.setData('deskId', String(desk.id));
+        }
+        e.dataTransfer.effectAllowed = 'move';
+        el.classList.add('dragging');
+        if (state.selectedDeskId) {
+          state.selectedDeskId = null;
+          hideSelectionBar();
+        }
+      });
+
+      el.addEventListener('dragend', () => {
+        el.classList.remove('dragging');
+        document.querySelectorAll('.desk.drag-over, .grid-slot.drag-over').forEach(d => d.classList.remove('drag-over'));
+        state.draggedDeskId = null;
+      });
+
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        el.classList.add('drag-over');
+      });
+
+      el.addEventListener('dragleave', () => {
+        el.classList.remove('drag-over');
+      });
+
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        el.classList.remove('drag-over');
+        const dragType = e.dataTransfer.getData('type');
+
+        if (state.isEditLayoutMode || dragType === 'desk-reposition') {
+          const srcDeskId = parseInt(e.dataTransfer.getData('deskId') || state.draggedDeskId, 10);
+          if (srcDeskId && srcDeskId !== desk.id) {
+            swapDeskPositions(srcDeskId, desk.id);
+          }
+        } else if (dragType === 'student-assign') {
+          const studentId = parseInt(e.dataTransfer.getData('studentId'), 10);
+          if (studentId) {
+            assignStudentToDesk(studentId, desk.id);
+          }
+        } else {
+          const srcDeskId = parseInt(e.dataTransfer.getData('deskId') || state.draggedDeskId, 10);
+          if (srcDeskId && srcDeskId !== desk.id) {
+            moveOrSwapStudent(srcDeskId, desk.id);
+          }
+        }
+      });
+
+      // Touch handlers for smart boards
+      attachTouchHandlers(el, desk);
+
+      // Click Event (Swap/Move or Select)
+      el.addEventListener('click', (e) => {
+        handleDeskClick(desk);
+      });
+
+      // Double-click opens detailed modal
+      el.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        openDeskModal(desk);
+      });
+
+      return el;
+    }
+
+    function renderSingleDesk(desk) {
+      const el = document.getElementById(`desk-${desk.id}`);
+      if (!el) return;
+
+      // Update basic classes
+      el.className = 'desk';
+      if (desk.isDisabled) el.classList.add('disabled-desk');
+      if (desk.isPinned) el.classList.add('pinned');
+      if (state.selectedDeskId === desk.id) el.classList.add('selected');
+
+      const student = state.roster.find(s => s.id === desk.studentId);
+      if (student && desk.isRevealed) {
+        el.classList.add(student.gender === 'M' ? 'boy' : 'girl');
+      }
+
+      // Preserve grid coordinates
+      if (desk.row !== undefined && desk.col !== undefined && (state.layout === 'custom' || state.layout === 'u-shape' || state.isEditLayoutMode)) {
+        el.style.gridRow = `${desk.row + 1}`;
+        el.style.gridColumn = `${desk.col + 1}`;
+      }
+
+      if (state.viewInverted) {
+        el.style.transform = 'rotate(180deg)';
+      } else {
+        el.style.transform = '';
+      }
+
+      // Update Student Content in place
+      const content = el.querySelector('.student-content');
+      if (content) {
+        if (desk.isDisabled) {
+          content.innerHTML = `<div style="font-size: 0.8rem; font-weight: 700; color: #64748b;">(비활성 통로)</div>`;
+        } else if (!desk.studentId) {
+          content.innerHTML = `<div style="font-size: 0.82rem; font-weight: 700; color: #475569;">(빈 자리)</div>`;
+        } else if (!desk.isRevealed) {
+          if (desk.slotDisplay) {
+            content.innerHTML = `<div class="slot-spinning">${desk.slotDisplay}</div>`;
+          } else {
+            content.innerHTML = `<div class="mystery-card">?</div>`;
+          }
+        } else {
+          content.innerHTML = `
+            <div class="revealed-student">
+              <div class="student-name">${student ? student.name : '미배정'}</div>
+              <div class="student-meta">
+                <span class="student-num">${student ? student.num + '번' : ''}</span>
+                <span class="gender-pill">${student ? (student.gender === 'M' ? '남' : '여') : ''}</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function handleDeskClick(desk) {
+      if (state.isAnimating || state.isEditLayoutMode) return;
+
+      if (state.selectedDeskId !== null) {
+        if (state.selectedDeskId === desk.id) {
+          state.selectedDeskId = null;
+          hideSelectionBar();
+          renderClassroom();
+          return;
+        }
+
+        const prevId = state.selectedDeskId;
+        state.selectedDeskId = null;
+        hideSelectionBar();
+        moveOrSwapStudent(prevId, desk.id);
+        return;
+      }
+
+      state.selectedDeskId = desk.id;
+      renderClassroom();
+      showSelectionBar(desk);
+    }
+
+    function openDeskModal(desk) {
+      state.selectedDeskId = desk.id;
+      const student = state.roster.find(s => s.id === desk.studentId);
+      document.getElementById('deskModalTitle').textContent = `[${desk.label}] 책상 관리`;
+      document.getElementById('deskCurrentStudent').textContent = student ? `${student.num}번 ${student.name} (${student.gender === 'M' ? '남학생' : '여학생'})` : '(배치된 학생 없음)';
+      document.getElementById('btnPinText').textContent = desk.isPinned ? '📌 고정 해제하기' : '📌 이 자리에 학생 고정하기';
+      document.getElementById('btnDisableText').textContent = desk.isDisabled ? '책상 활성화하기' : '이 책상 비활성화 (결번/통로)';
+      openModal('modalDeskAction');
+    }
+
+    function renderUnassignedTray() {
+      const tray = document.getElementById('unassignedTray');
+      const list = document.getElementById('unassignedList');
+      if (!tray || !list) return;
+
+      const assignedIds = new Set(state.desks.filter(d => !d.isDisabled && d.studentId).map(d => d.studentId));
+      const unassigned = state.roster.filter(s => !assignedIds.has(s.id));
+
+      if (unassigned.length === 0 || state.isEditLayoutMode) {
+        tray.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      tray.classList.remove('hidden');
+      list.innerHTML = '';
+
+      unassigned.forEach(student => {
+        const chip = document.createElement('div');
+        chip.className = `student-chip ${student.gender === 'M' ? 'boy' : 'girl'}`;
+        chip.draggable = true;
+        chip.innerHTML = `<span>${student.gender === 'M' ? '👦' : '👧'}</span><span>${student.num}번 ${student.name}</span>`;
+        chip.title = '책상으로 드래그하여 바로 배치하세요';
+
+        chip.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('type', 'student-assign');
+          e.dataTransfer.setData('studentId', String(student.id));
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        chip.addEventListener('click', () => {
+          if (state.selectedDeskId) {
+            assignStudentToDesk(student.id, state.selectedDeskId);
+            state.selectedDeskId = null;
+            hideSelectionBar();
+          }
+        });
+
+        list.appendChild(chip);
+      });
+
+      tray.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      tray.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const srcDeskId = parseInt(e.dataTransfer.getData('deskId') || state.draggedDeskId, 10);
+        if (srcDeskId) {
+          const desk = state.desks.find(d => d.id === srcDeskId);
+          if (desk && desk.studentId) {
+            unassignStudent(desk.studentId);
+          }
+        }
+      });
+    }
+
+    function updateSummary() {
+      const total = state.roster.length;
+      const boys = state.roster.filter(s => s.gender === 'M').length;
+      const girls = state.roster.filter(s => s.gender === 'F').length;
+      const activeDesks = state.desks.filter(d => !d.isDisabled);
+      const assigned = state.desks.filter(d => !d.isDisabled && d.studentId).length;
+
+      document.getElementById('statTotalStudents').textContent = `${total}명`;
+      document.getElementById('statBoys').textContent = `${boys}명`;
+      document.getElementById('statGirls').textContent = `${girls}명`;
+      document.getElementById('statAssignedDesks').textContent = `${assigned} / ${activeDesks.length}`;
+      document.getElementById('statRulesCount').textContent = `${state.rules.length}개`;
+      saveSeatAssignment();
+    }
+
+    // 새로고침해도 마지막 자리 배치가 그대로 남도록 저장/복원
+    function saveSeatAssignment() {
+      try {
+        localStorage.setItem('seat_master_assignment', JSON.stringify({
+          layout: state.layout,
+          n: state.desks.length,
+          seats: state.desks.map(d => [d.id, d.studentId || null, !!d.isPinned, !!d.isDisabled])
+        }));
+      } catch (e) {}
+    }
+    function restoreSeatAssignment() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('seat_master_assignment') || 'null');
+        if (!saved || saved.layout !== state.layout || saved.n !== state.desks.length) return false;
+        const ids = new Set(state.roster.map(st => st.id));
+        const byId = new Map(saved.seats.map(x => [x[0], x]));
+        if (!state.desks.every(d => byId.has(d.id))) return false;
+        state.desks.forEach(d => {
+          const x = byId.get(d.id);
+          d.studentId = ids.has(x[1]) ? x[1] : null;
+          d.isPinned = x[2];
+          d.isDisabled = x[3];
+          d.isRevealed = true;
+        });
+        return state.desks.some(d => d.studentId);
+      } catch (e) { return false; }
+    }
+
+    // --- Modal Management ---
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      if (id === 'modalDeskAction') {
+        state.selectedDeskId = null;
+        renderClassroom();
+      }
+    }
+
+    // --- Rules Management ---
+    function updateRulesModal() {
+      const selA = document.getElementById('sepStudentA');
+      const selB = document.getElementById('sepStudentB');
+      selA.innerHTML = '';
+      selB.innerHTML = '';
+
+      state.roster.forEach(s => {
+        const optA = document.createElement('option');
+        optA.value = s.id;
+        optA.textContent = `${s.num}번 ${s.name}`;
+        selA.appendChild(optA);
+
+        const optB = document.createElement('option');
+        optB.value = s.id;
+        optB.textContent = `${s.num}번 ${s.name}`;
+        selB.appendChild(optB);
+      });
+
+      const container = document.getElementById('rulesListContainer');
+      container.innerHTML = '';
+
+      if (state.rules.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px;">등록된 특수 규칙이 없습니다.</div>`;
+        return;
+      }
+
+      state.rules.forEach((rule, idx) => {
+        const item = document.createElement('div');
+        item.className = 'rule-item';
+        if (rule.type === 'separate') {
+          const studentA = state.roster.find(s => s.id === rule.a);
+          const studentB = state.roster.find(s => s.id === rule.b);
+          item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="rule-tag separate">분리 규칙</span>
+              <span class="rule-desc">${studentA ? studentA.name : '학생'} ↔ ${studentB ? studentB.name : '학생'} (짝/모둠 금지)</span>
+            </div>
+            <button class="btn-tool" style="padding: 4px 8px; color: #ef4444;" onclick="deleteRule(${idx})">삭제</button>
+          `;
+        }
+        container.appendChild(item);
+      });
+    }
+
+    window.deleteRule = function(idx) {
+      state.rules.splice(idx, 1);
+      localStorage.setItem('seat_master_rules', JSON.stringify(state.rules));
+      updateRulesModal();
+      updateSummary();
+    };
+
+    // --- Event Listeners Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initDesks();
+      if (restoreSeatAssignment()) {
+        renderClassroom();
+        renderUnassignedTray();
+        updateSummary();
+      } else {
+        runSmartPlacement();
+      }
+
+      // Initialize student count in inputs
+      const countInput = document.getElementById('studentCountInput');
+      if (countInput) countInput.value = state.roster.length;
+      const modalCountInput = document.getElementById('modalStudentCountInput');
+      if (modalCountInput) modalCountInput.value = state.roster.length;
+      const openRosterBtn = document.getElementById('btnOpenRoster');
+      if (openRosterBtn) {
+        const textSpan = openRosterBtn.querySelector('span:last-child');
+        if (textSpan) textSpan.textContent = `명단 편집 (${state.roster.length}명)`;
+      }
+      if (document.getElementById('layoutSelect')) {
+        const val = state.layout === 'groups-6' ? 'groups' : state.layout;
+        document.getElementById('layoutSelect').value = val;
+      }
+
+      // Student Count Stepper & Preset Handlers
+      const btnDec = document.getElementById('btnDecCount');
+      if (btnDec) {
+        btnDec.addEventListener('click', () => {
+          setStudentCount(state.roster.length - 1);
+        });
+      }
+      const btnInc = document.getElementById('btnIncCount');
+      if (btnInc) {
+        btnInc.addEventListener('click', () => {
+          setStudentCount(state.roster.length + 1);
+        });
+      }
+      if (countInput) {
+        countInput.addEventListener('change', (e) => {
+          setStudentCount(parseInt(e.target.value, 10));
+        });
+        countInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            setStudentCount(parseInt(e.target.value, 10));
+          }
+        });
+      }
+      const quickPreset = document.getElementById('quickCountPreset');
+      if (quickPreset) {
+        quickPreset.addEventListener('change', (e) => {
+          const val = parseInt(e.target.value, 10);
+          if (val) {
+            setStudentCount(val);
+            e.target.value = '';
+          }
+        });
+      }
+
+      // Viewpoint Toggle
+      document.getElementById('btnToggleView').addEventListener('click', () => {
+        state.viewInverted = !state.viewInverted;
+        document.getElementById('viewModeText').textContent = state.viewInverted ? '칠판(학생) 기준' : '교탁(선생님) 기준';
+        document.getElementById('btnToggleView').classList.toggle('active', state.viewInverted);
+        renderClassroom();
+      });
+
+      // Sound Toggle
+      document.getElementById('btnToggleSound').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('soundIcon').textContent = state.soundEnabled ? '🔊' : '🔇';
+        document.getElementById('soundText').textContent = state.soundEnabled ? '효과음' : '음소거';
+        document.getElementById('btnToggleSound').classList.toggle('active', state.soundEnabled);
+      });
+
+      // Layout Select Change
+      document.getElementById('layoutSelect').addEventListener('change', (e) => {
+        state.layout = e.target.value;
+        localStorage.setItem('seat_master_layout', state.layout);
+        if (state.layout !== 'custom') {
+          state.isEditLayoutMode = false;
+        }
+        initDesks();
+        runSmartPlacement();
+      });
+
+      // Layout Edit Mode Toggles & Buttons
+      const btnToggleEdit = document.getElementById('btnToggleEditLayout');
+      if (btnToggleEdit) {
+        btnToggleEdit.addEventListener('click', () => {
+          state.isEditLayoutMode = !state.isEditLayoutMode;
+          if (state.isEditLayoutMode) {
+            if (state.layout !== 'custom') {
+              convertCurrentLayoutToCustom();
+            }
+            showToast('🛠️ 자리 직접 이동·편집 모드: 책상을 드래그하여 옮기거나 +를 눌러 추가하세요.');
+          } else {
+            saveCustomLayout();
+            showToast('✅ 자리 편집이 완료되었습니다.');
+          }
+          renderClassroom();
+        });
+      }
+
+      const btnFinishEdit = document.getElementById('btnFinishEdit');
+      if (btnFinishEdit) {
+        btnFinishEdit.addEventListener('click', () => {
+          state.isEditLayoutMode = false;
+          saveCustomLayout();
+          renderClassroom();
+          showToast('✅ 자리 편집이 완료되었습니다.');
+        });
+      }
+
+      const btnFinishAndAssign = document.getElementById('btnFinishEditAndAssign');
+      if (btnFinishAndAssign) {
+        btnFinishAndAssign.addEventListener('click', () => {
+          state.isEditLayoutMode = false;
+          saveCustomLayout();
+          runSmartPlacement();
+          playSound('fanfare');
+          triggerConfetti();
+          showToast('✨ 직접 배치한 자리에 학생 자동 배치가 완료되었습니다!');
+        });
+      }
+
+      const btnAddRow = document.getElementById('btnAddRow');
+      if (btnAddRow) {
+        btnAddRow.addEventListener('click', () => {
+          state.customRows = (state.customRows || 5) + 1;
+          renderClassroom();
+          showToast(`➕ 행이 추가되었습니다 (총 ${state.customRows}행).`);
+        });
+      }
+
+      const btnResetLayout = document.getElementById('btnResetLayout');
+      if (btnResetLayout) {
+        btnResetLayout.addEventListener('click', () => {
+          if (confirm('기본 4분단 대형으로 리셋할까요?')) {
+            localStorage.removeItem('seat_master_custom_desks');
+            state.customRows = 5;
+            state.customCols = 8;
+            state.layout = 'pairs-4col';
+            document.getElementById('layoutSelect').value = 'pairs-4col';
+            localStorage.setItem('seat_master_layout', 'pairs-4col');
+            state.isEditLayoutMode = false;
+            initDesks();
+            runSmartPlacement();
+            showToast('🔄 기본 4분단 대형으로 리셋되었습니다.');
+          }
+        });
+      }
+
+      // Floating Selection Bar Actions
+      const btnBarPin = document.getElementById('btnBarPin');
+      if (btnBarPin) {
+        btnBarPin.addEventListener('click', () => {
+          if (state.selectedDeskId !== null) {
+            const desk = state.desks.find(d => d.id === state.selectedDeskId);
+            if (desk) {
+              desk.isPinned = !desk.isPinned;
+              playSound('lock');
+              renderClassroom();
+              showSelectionBar(desk);
+              showToast(`📌 [${desk.label}] 고정 상태: ${desk.isPinned ? '고정됨' : '해제됨'}`);
+            }
+          }
+        });
+      }
+
+      const btnBarDisable = document.getElementById('btnBarDisable');
+      if (btnBarDisable) {
+        btnBarDisable.addEventListener('click', () => {
+          if (state.selectedDeskId !== null) {
+            const desk = state.desks.find(d => d.id === state.selectedDeskId);
+            if (desk) {
+              desk.isDisabled = !desk.isDisabled;
+              if (desk.isDisabled) desk.studentId = null;
+              state.selectedDeskId = null;
+              hideSelectionBar();
+              playSound('tick');
+              renderClassroom();
+              showToast(`❌ [${desk.label}] ${desk.isDisabled ? '비활성화됨 (결번/통로)' : '활성화됨'}`);
+            }
+          }
+        });
+      }
+
+      const btnBarDetails = document.getElementById('btnBarDetails');
+      if (btnBarDetails) {
+        btnBarDetails.addEventListener('click', () => {
+          if (state.selectedDeskId !== null) {
+            const desk = state.desks.find(d => d.id === state.selectedDeskId);
+            if (desk) {
+              openDeskModal(desk);
+            }
+          }
+        });
+      }
+
+      const btnBarCancel = document.getElementById('btnBarCancel');
+      if (btnBarCancel) {
+        btnBarCancel.addEventListener('click', () => {
+          state.selectedDeskId = null;
+          hideSelectionBar();
+          renderClassroom();
+        });
+      }
+
+      // Gender Rule Change
+      document.getElementById('genderRuleSelect').addEventListener('change', (e) => {
+        state.genderRule = e.target.value;
+        runSmartPlacement();
+      });
+
+      // Auto Placement Button
+      document.getElementById('btnAutoAssign').addEventListener('click', () => {
+        runSmartPlacement();
+        playSound('fanfare');
+        triggerConfetti();
+      });
+
+      // Slot Reveal Button (Preserves current placement & manual moves)
+      document.getElementById('btnSlotReveal').addEventListener('click', () => {
+        startSlotReveal({ shuffle: false });
+      });
+
+      // Slot Shuffle Reveal Button (Fresh smart shuffle + slot reveal)
+      const btnSlotShuffleReveal = document.getElementById('btnSlotShuffleReveal');
+      if (btnSlotShuffleReveal) {
+        btnSlotShuffleReveal.addEventListener('click', () => {
+          startSlotReveal({ shuffle: true });
+        });
+      }
+
+      // Step Reveal Button
+      document.getElementById('btnStepReveal').addEventListener('click', () => {
+        revealNextStep();
+      });
+
+      // Instant Reveal
+      document.getElementById('btnInstantReveal').addEventListener('click', () => {
+        state.desks.forEach(d => d.isRevealed = true);
+        renderClassroom();
+        playSound('fanfare');
+        triggerConfetti();
+      });
+
+      // Hide All
+      document.getElementById('btnHideAll').addEventListener('click', () => {
+        state.desks.forEach(d => d.isRevealed = false);
+        renderClassroom();
+        playSound('tick');
+      });
+
+      // Fullscreen
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      // Print
+      document.getElementById('btnPrint').addEventListener('click', () => {
+        // Reveal all for printing
+        state.desks.forEach(d => d.isRevealed = true);
+        renderClassroom();
+        window.print();
+      });
+
+      // Roster Modal Open
+      document.getElementById('btnOpenRoster').addEventListener('click', () => {
+        const text = state.roster.map(s => `${s.num} ${s.name} ${s.gender === 'M' ? '남' : '여'}`).join('\n');
+        document.getElementById('rosterInput').value = text;
+        const modalCount = document.getElementById('modalStudentCountInput');
+        if (modalCount) modalCount.value = state.roster.length;
+        openModal('modalRoster');
+      });
+
+      // Quick Generator in Modal
+      const btnGenByCount = document.getElementById('btnGenerateRosterByCount');
+      if (btnGenByCount) {
+        btnGenByCount.addEventListener('click', () => {
+          const cnt = parseInt(document.getElementById('modalStudentCountInput').value, 10) || 24;
+          const list = generateDefaultRoster(cnt);
+          const text = list.map(s => `${s.num} ${s.name} ${s.gender === 'M' ? '남' : '여'}`).join('\n');
+          document.getElementById('rosterInput').value = text;
+          showToast(`⚡ ${cnt}명 명단이 생성되었습니다. '명단 및 인원수 적용하기'를 누르면 적용됩니다.`);
+        });
+      }
+
+      document.querySelectorAll('.btn-preset-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cnt = parseInt(btn.getAttribute('data-count'), 10);
+          const modalCount = document.getElementById('modalStudentCountInput');
+          if (modalCount) modalCount.value = cnt;
+          const list = generateDefaultRoster(cnt);
+          const text = list.map(s => `${s.num} ${s.name} ${s.gender === 'M' ? '남' : '여'}`).join('\n');
+          document.getElementById('rosterInput').value = text;
+        });
+      });
+
+      // Load Sample Roster
+      document.getElementById('btnLoadSampleRoster').addEventListener('click', () => {
+        const cnt = state.roster.length;
+        const list = generateDefaultRoster(cnt);
+        const text = list.map(s => `${s.num} ${s.name} ${s.gender === 'M' ? '남' : '여'}`).join('\n');
+        document.getElementById('rosterInput').value = text;
+      });
+
+      // Save Roster
+      document.getElementById('btnSaveRoster').addEventListener('click', () => {
+        const raw = document.getElementById('rosterInput').value.trim();
+        const lines = raw.split('\n');
+        let newRoster = [];
+
+        lines.forEach((line, index) => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+          // Match patterns: "1 김철수 남" or "김철수,남" or "김철수"
+          const tokens = trimmed.split(/[\s,]+/);
+          let num = index + 1;
+          let name = tokens[0];
+          let gender = 'M';
+
+          // If first token is number
+          if (/^\d+$/.test(tokens[0])) {
+            num = parseInt(tokens[0], 10);
+            name = tokens[1] || `학생${num}`;
+            if (tokens[2]) {
+              gender = tokens[2].includes('여') || tokens[2].toUpperCase() === 'F' ? 'F' : 'M';
+            }
+          } else {
+            if (tokens[1]) {
+              gender = tokens[1].includes('여') || tokens[1].toUpperCase() === 'F' ? 'F' : 'M';
+            }
+          }
+
+          newRoster.push({
+            id: index + 1,
+            num: num,
+            name: name,
+            gender: gender
+          });
+        });
+
+        if (newRoster.length === 0) {
+          alert("유효한 학생 명단을 입력해주세요.");
+          return;
+        }
+
+        const newCount = newRoster.length;
+        state.roster = newRoster;
+        localStorage.setItem('seat_master_roster', JSON.stringify(state.roster));
+        localStorage.setItem('seat_master_student_count', String(newCount));
+
+        if (countInput) countInput.value = newCount;
+        if (modalCountInput) modalCountInput.value = newCount;
+        if (openRosterBtn) {
+          const textSpan = openRosterBtn.querySelector('span:last-child');
+          if (textSpan) textSpan.textContent = `명단 편집 (${newCount}명)`;
+        }
+
+        // Clean up rules for non-existent students
+        state.rules = state.rules.filter(r => r.a <= newCount && r.b <= newCount);
+        localStorage.setItem('seat_master_rules', JSON.stringify(state.rules));
+
+        closeModal('modalRoster');
+        initDesks();
+        runSmartPlacement();
+        showToast(`🎉 ${newCount}명 학생 명단 및 교실 자리가 설정되었습니다.`);
+      });
+
+      // Rules Modal Open
+      document.getElementById('btnOpenRules').addEventListener('click', () => {
+        updateRulesModal();
+        openModal('modalRules');
+      });
+
+      // Add Separation Rule
+      document.getElementById('btnAddSepRule').addEventListener('click', () => {
+        const a = parseInt(document.getElementById('sepStudentA').value, 10);
+        const b = parseInt(document.getElementById('sepStudentB').value, 10);
+        if (a === b) {
+          alert("서로 다른 두 학생을 선택해야 합니다.");
+          return;
+        }
+        // Avoid duplicate
+        const exists = state.rules.some(r => r.type === 'separate' && ((r.a === a && r.b === b) || (r.a === b && r.b === a)));
+        if (exists) {
+          alert("이미 등록된 분리 규칙입니다.");
+          return;
+        }
+
+        state.rules.push({ type: 'separate', a: a, b: b });
+        localStorage.setItem('seat_master_rules', JSON.stringify(state.rules));
+        updateRulesModal();
+        updateSummary();
+      });
+
+      // Desk Modal Action Handlers
+      document.getElementById('btnTogglePin').addEventListener('click', () => {
+        if (state.selectedDeskId !== null) {
+          const desk = state.desks.find(d => d.id === state.selectedDeskId);
+          if (desk) {
+            desk.isPinned = !desk.isPinned;
+            closeModal('modalDeskAction');
+            renderClassroom();
+          }
+        }
+      });
+
+      document.getElementById('btnToggleDisabledDesk').addEventListener('click', () => {
+        if (state.selectedDeskId !== null) {
+          const desk = state.desks.find(d => d.id === state.selectedDeskId);
+          if (desk) {
+            desk.isDisabled = !desk.isDisabled;
+            if (desk.isDisabled) desk.studentId = null;
+            closeModal('modalDeskAction');
+            renderClassroom();
+          }
+        }
+      });
+
+      document.getElementById('btnRevealSingle').addEventListener('click', () => {
+        if (state.selectedDeskId !== null) {
+          const desk = state.desks.find(d => d.id === state.selectedDeskId);
+          if (desk) {
+            desk.isRevealed = !desk.isRevealed;
+            closeModal('modalDeskAction');
+            renderClassroom();
+          }
+        }
+      });
+
+      // Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'Escape') {
+          if (state.selectedDeskId !== null) {
+            state.selectedDeskId = null;
+            hideSelectionBar();
+            renderClassroom();
+          }
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          revealNextStep();
+        } else if (e.code === 'KeyR') {
+          runSmartPlacement();
+        } else if (e.code === 'KeyS') {
+          startSlotReveal({ shuffle: false });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

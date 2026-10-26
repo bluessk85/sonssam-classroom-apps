@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>구글 스프레드시트 공공데이터 실습 가이드북 | 손쌤 에듀테크</title>
+  <meta name="description" content="초등 6학년 실과·정보·수학 연계: 구글 스프레드시트로 공공데이터를 열고 계산 열, 막대·원그래프 제작, 데이터 리터러시 해석 문장을 완성하는 학생용 실습 가이드" />
+  <meta property="og:title" content="구글 스프레드시트 공공데이터 실습 가이드북 | 손쌤 에듀테크" />
+  <meta property="og:description" content="스쿨존 사고 공공데이터 CSV 다운로드, 수식 복사, 단계별 차트 만들기, 자기점검 체크리스트" />
+  <meta name="theme-color" content="#1e40af" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --navy: #0b2545;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0b2545 0%, #1e40af 100%);
+      color: white;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 15px rgba(11, 37, 69, 0.15);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 44px; height: 44px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .brand h1 { font-size: 19px; font-weight: 800; }
+    .brand p { font-size: 12px; color: #cbd5e1; }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      text-decoration: none;
+      user-select: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-white {
+      background: white;
+      color: var(--navy);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .btn-white:hover { background: #f1f5f9; }
+    .btn-outline {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border-color: rgba(255,255,255,0.25);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.22); }
+    .btn-copy {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-copy:hover { background: #dbeafe; }
+    .btn-copy.copied {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #86efac;
+    }
+
+    /* Main Container */
+    main {
+      max-width: 960px;
+      margin: 24px auto 48px;
+      padding: 0 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Hero Banner */
+    .hero-box {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .hero-info h2 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .hero-info p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .download-badge-btn {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .download-badge-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+    }
+
+    /* Flow Stepper */
+    .flow-bar {
+      background: var(--primary-light);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #1e40af;
+    }
+    .flow-item { display: flex; align-items: center; gap: 6px; }
+    .flow-arrow { color: #93c5fd; }
+
+    /* Section Step Card */
+    .step-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 12px;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+    }
+    .step-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+
+    /* Subcard grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .sub-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sub-card strong {
+      color: var(--navy);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sub-card p, .sub-card ol, .sub-card ul {
+      font-size: 13px;
+      color: #334155;
+      padding-left: 18px;
+      line-height: 1.7;
+    }
+
+    /* Code Snippet Box */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      color: #2563eb;
+      border: 1px solid #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th {
+      background: #0b2545;
+      color: white;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* Interactive Inputs for Inquiry Report */
+    .inquiry-input-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .inquiry-input-box label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+    }
+    .inquiry-input-box input {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #0f172a;
+      transition: all 0.15s;
+    }
+    .inquiry-input-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Checklist */
+    .checklist-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.15s;
+    }
+    .check-label:hover { background: #f1f5f9; }
+    .check-label input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .check-label.checked {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    /* Progress Bar */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .progress-bar-bg {
+      flex: 1;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      transition: width 0.3s ease;
+    }
+
+    /* Note Warning */
+    .note-box {
+      border-left: 4px solid var(--warn);
+      background: #fffbeb;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #92400e;
+      line-height: 1.6;
+    }
+    .note-box strong { color: #b45309; }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; color: black; }
+      header, .download-badge-btn, .header-actions, .btn-copy, .btn { display: none !important; }
+      main { width: 100%; margin: 0; padding: 0; }
+      .step-card { border: 1px solid #777; box-shadow: none; page-break-inside: avoid; margin-bottom: 20px; }
+      th { background: #eee !important; color: black !important; }
+      .flow-bar { background: none; border: 1px solid #777; color: black; }
+      input { border: 1px solid #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📊</div>
+      <div>
+        <h1>구글 스프레드시트 공공데이터 실습 가이드북</h1>
+        <p>초등 6학년 실과·정보·수학 연계 | 공공데이터 수집·가공·차트 작성·해석 가이드</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" id="btnPrintGuide">🖨️ 실습지 인쇄 / PDF</button>
+      <a href="https://sheets.google.com" target="_blank" rel="noopener noreferrer" class="btn btn-white">
+        🌐 구글 시트 바로가기 ↗
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top Hero Banner with Direct CSV Download -->
+    <section class="hero-box">
+      <div class="hero-info">
+        <h2>스쿨존 안전 공공데이터 분석 실습</h2>
+        <p>
+          수집한 실제 공공데이터(지역별 보행·자전거 사고, CCTV 통계)를 구글 스프레드시트에서 열고,<br>
+          수식 계산과 막대·원그래프를 직접 완성하여 안전한 스쿨존을 위한 해석 보고서를 작성합니다.
+        </p>
+      </div>
+      <div>
+        <button class="download-badge-btn" id="btnDownloadCSV">
+          <span>📥 실습용 CSV 파일 다운로드</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Flow Stepper -->
+    <div class="flow-bar">
+      <div class="flow-item"><span>1️⃣ CSV 열기</span></div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-item"><span>2️⃣ 데이터 점검</span></div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-item"><span>3️⃣ 계산 열 수식</span></div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-item"><span>4️⃣ 막대그래프</span></div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-item"><span>5️⃣ 원그래프</span></div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-item"><span>6️⃣ 해석 보고서</span></div>
+    </div>
+
+    <!-- Step 1: CSV Import -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">구글 스프레드시트에 CSV 파일 가져오기</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        상단의 <strong>[📥 실습용 CSV 파일 다운로드]</strong> 버튼을 눌러 컴퓨터/크롬북에 <code>schoolzone_student_sample.csv</code> 파일을 저장한 후 아래 방법 중 하나를 선택해 엽니다.
+      </p>
+      <div class="grid-2">
+        <div class="sub-card">
+          <strong>방법 A: 스프레드시트에서 직접 가져오기</strong>
+          <ol>
+            <li><strong>sheets.google.com</strong> 접속 → [빈 스프레드시트] 클릭</li>
+            <li>메뉴의 <strong>파일 ➔ 가져오기 ➔ 업로드</strong> 선택</li>
+            <li>다운로드 폴더의 <code>schoolzone_student_sample.csv</code> 선택</li>
+            <li>가져오기 위치: <strong>[새 시트 만들기]</strong>, 구분자: <strong>[자동 감지]</strong> 선택 후 <strong>[데이터 가져오기]</strong></li>
+          </ol>
+        </div>
+        <div class="sub-card">
+          <strong>방법 B: 구글 드라이브에서 열기</strong>
+          <ol>
+            <li><strong>drive.google.com</strong> 접속 → [+ 새로 만들기] 클릭</li>
+            <li><strong>[파일 업로드]</strong>로 CSV 파일 올리기</li>
+            <li>업로드된 파일을 더블클릭하여 <strong>[Google Sheets로 열기]</strong></li>
+            <li>좌측 상단의 제목을 <strong>[모둠명_스쿨존데이터분석]</strong>으로 변경</li>
+          </ol>
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 2: Data Cleaning Check -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">데이터 무결성 및 비식별화 점검</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        데이터를 분석하기 전, 인공지능과 컴퓨터가 올바르게 계산할 수 있는 "좋은 상태"인지 먼저 점검합니다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">확인할 항목</th>
+            <th style="width: 38%;">올바른 상태 (정상)</th>
+            <th>문제가 있을 때 해결 방법</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>첫 행 (헤더)</strong></td>
+            <td>1행에 열 이름(지역, 보호구역수, 보행사고 등)만 정확히 있다.</td>
+            <td>1행 위에 빈 줄이나 긴 문서 제목이 있으면 행을 마우스 우클릭 후 <strong>[행 삭제]</strong>합니다.</td>
+          </tr>
+          <tr>
+            <td><strong>숫자 열 속성</strong></td>
+            <td>사고 건수와 구역 수가 순수 숫자로 입력되어 오른쪽 정렬된다.</td>
+            <td>'18건', '45개'처럼 단위가 붙어있으면 문자로 인식되므로 숫자로 고칩니다.</td>
+          </tr>
+          <tr>
+            <td><strong>지역명 표기</strong></td>
+            <td>'군포시', '안양시'처럼 지역 이름이 일관되게 표기되어 있다.</td>
+            <td>'군포', '군포시'처럼 표기가 다르면 같은 지역으로 집계되지 않으므로 통일합니다.</td>
+          </tr>
+          <tr>
+            <td><strong>개인정보 보호</strong></td>
+            <td>학생 이름, 집 주소, 차량 번호 등 민감한 개인 식별 정보가 없다.</td>
+            <td>특정 개인을 알아볼 수 있는 정보는 즉시 열을 삭제하고 통계 집계 데이터만 사용합니다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+
+    <!-- Step 3: Formula Calculation Columns -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">새로운 계산 열 만들기 (스프레드시트 수식)</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        단순 통계를 넘어 의미 있는 비율과 합계를 구하기 위해 스프레드시트 수식을 사용합니다. 2행에 수식을 넣은 후 <strong>우측 하단의 파란 점(채우기 핸들)을 아래로 드래그</strong>하세요.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">추가할 열</th>
+            <th style="width: 25%;">열 제목 (1행)</th>
+            <th style="width: 35%;">2행에 입력할 수식</th>
+            <th>의미 및 팁</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>F열</strong></td>
+            <td><strong>CCTV설치비율</strong></td>
+            <td>
+              <code>=C2/B2</code>
+              <button class="btn-copy" data-clipboard="=C2/B2">📋 수식 복사</button>
+            </td>
+            <td>보호구역 수 중 CCTV가 설치된 비율 (서식 ➔ 숫자 ➔ <strong>퍼센트(%)</strong> 적용)</td>
+          </tr>
+          <tr>
+            <td><strong>G열</strong></td>
+            <td><strong>총사고건수</strong></td>
+            <td>
+              <code>=D2+E2</code>
+              <button class="btn-copy" data-clipboard="=D2+E2">📋 수식 복사</button>
+            </td>
+            <td>보행사고 건수와 자전거사고 건수를 더한 총 위험 지표</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note-box">
+        💡 <strong>팁</strong>: 수식을 입력한 셀의 오른쪽 아래 파란 사각형 점(채우기 핸들)을 더블클릭하면 7행까지 한 번에 자동으로 수식이 채워집니다.
+      </div>
+    </article>
+
+    <!-- Step 4: Bar Chart Creation -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">지역별 비교 막대그래프 만들기</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        어느 지역의 보행사고가 가장 많은지 한눈에 직관적으로 비교할 수 있는 세로 막대그래프를 삽입합니다.
+      </p>
+      <div class="grid-2">
+        <div class="sub-card">
+          <strong>🖱️ 비연속 범위 선택하기 (중요)</strong>
+          <ol>
+            <li>마우스로 <strong>A1:A7 (지역 열)</strong>을 드래그하여 선택합니다.</li>
+            <li>키보드의 <strong>Ctrl</strong> (Mac은 <strong>Cmd ⌘</strong>) 키를 누른 상태를 유지합니다.</li>
+            <li>그 상태로 <strong>D1:D7 (보행사고 열)</strong>을 드래그하여 함께 선택합니다.</li>
+          </ol>
+        </div>
+        <div class="sub-card">
+          <strong>📊 차트 삽입 및 제목 편집</strong>
+          <ol>
+            <li>상단 메뉴에서 <strong>[삽입] ➔ [차트]</strong> 클릭</li>
+            <li>우측 차트 편집기 ➔ 차트 종류에서 <strong>[세로 막대그래프]</strong> 선택</li>
+            <li>차트 제목을 더블클릭하여 <strong>"지역별 스쿨존 보행사고 발생 건수 비교"</strong>로 변경</li>
+          </ol>
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 5: Pie Chart / Ratio -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">사고 유형별 비율 원그래프(파이 차트) 만들기</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        전체 어린이 사고 중 '보행사고'와 '자전거사고'가 차지하는 비율을 비교하기 위해 별도의 요약표를 만들고 원형 차트를 생성합니다.
+      </p>
+      <div class="grid-2">
+        <div class="sub-card">
+          <strong>1단계: 빈 공간(I1:J3)에 요약표 작성</strong>
+          <table>
+            <thead>
+              <tr><th>I열 (사고유형)</th><th>J열 (건수 합계)</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>보행사고</td>
+                <td>
+                  <code>=SUM(D2:D7)</code>
+                  <button class="btn-copy" data-clipboard="=SUM(D2:D7)">📋 복사</button>
+                </td>
+              </tr>
+              <tr>
+                <td>자전거사고</td>
+                <td>
+                  <code>=SUM(E2:E7)</code>
+                  <button class="btn-copy" data-clipboard="=SUM(E2:E7)">📋 복사</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sub-card">
+          <strong>2단계: 원형 차트 삽입</strong>
+          <ol>
+            <li>작성한 요약표 범위인 <strong>I1:J3</strong>을 마우스로 선택합니다.</li>
+            <li>메뉴에서 <strong>[삽입] ➔ [차트]</strong> 클릭</li>
+            <li>우측 차트 종류에서 <strong>[원형 차트(Pie Chart)]</strong> 선택</li>
+            <li>각 조각의 백분율(%)이 정확히 표시되는지 확인</li>
+          </ol>
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 6: Inquiry Sentence Builder -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">데이터 리터러시: 사실과 추측 구분 해석 보고서</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        완성된 그래프를 관찰하고 데이터로 뒷받침되는 <strong>객관적 사실</strong>과 섣부른 판단을 피하는 <strong>비판적 사고</strong>, 그리고 <strong>해결 방안</strong>을 작성합니다.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="inquiry-input-box">
+          <label>1. 최댓값 사실 (데이터에서 가장 큰 값 정확히 기록하기)</label>
+          <input type="text" id="reportFact1" placeholder="예: 그래프에서 수원시의 보행사고가 24건으로 가장 많았다." />
+        </div>
+        <div class="inquiry-input-box">
+          <label>2. 비교와 차이 (두 지역 또는 유형 간의 수치 차이 분석하기)</label>
+          <input type="text" id="reportFact2" placeholder="예: 군포시는 안양시보다 보행사고가 6건 더 많이 발생했다." />
+        </div>
+        <div class="inquiry-input-box">
+          <label>3. 조심할 점 (섣부른 일반화 방지 - 데이터 이면의 환경 고려)</label>
+          <input type="text" id="reportCaution" placeholder="예: 하지만 보호구역 수가 많은 지역은 학생 유동인구도 많으므로 단순 건수만으로 단정할 수 없다." />
+        </div>
+        <div class="inquiry-input-box">
+          <label>4. 인공지능 / 사회적 해결 아이디어 (데이터 기반 문제 해결)</label>
+          <input type="text" id="reportSolution" placeholder="예: 보행 사고가 잦은 횡단보도에 'AI 보행자 감지 스마트 바닥신호등'을 우선 설치하자." />
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 7: Final Checklist -->
+    <article class="step-card">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">제출 전 최종 자기점검 체크리스트</div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">
+        보고서를 제출하거나 발표하기 전, 모든 항목을 완료했는지 체크해 보세요.
+      </p>
+
+      <div class="checklist-group" id="checklistGroup">
+        <label class="check-label">
+          <input type="checkbox" class="task-check" />
+          <span>구글 스프레드시트에 파일명과 모둠원 이름을 정확히 기재했다.</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" class="task-check" />
+          <span>F열과 G열에 수식(<code>=C2/B2</code>, <code>=D2+E2</code>)을 바르게 적용했다.</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" class="task-check" />
+          <span>막대그래프와 원그래프의 제목이 무엇을 나타내는지 명확하다.</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" class="task-check" />
+          <span>해석 문장에 구체적인 수치(숫자 근거)를 넣어 작성했다.</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" class="task-check" />
+          <span>개인정보(이름, 주소, 위치 등)가 외부에 노출되지 않도록 확인했다.</span>
+        </label>
+      </div>
+
+      <div class="progress-wrap">
+        <span style="font-size: 13px; font-weight: 800; color: #475569;">실습 달성도:</span>
+        <div class="progress-bar-bg">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <strong id="progressText" style="font-size: 14px; color: var(--primary);">0%</strong>
+      </div>
+
+      <div class="note-box" style="border-left-color: var(--navy); background: #f1f5f9; color: var(--navy);">
+        📌 <strong>선생님의 말씀</strong>: 데이터와 그래프는 더 나은 사회적 판단을 돕는 훌륭한 도구입니다. 데이터의 수치 뒤에 있는 사람들의 안전과 생명을 생각하는 마음으로 분석을 마무리해 보세요!
+      </div>
+    </article>
+  </main>
+
+  <script>
+    /* =========================================================================
+       EMBEDDED SAMPLE CSV DATA GENERATOR & DOWNLOAD
+       ========================================================================= */
+    const SAMPLE_CSV = `지역,보호구역수,CCTV설치구역,보행사고,자전거사고
+군포시,45,42,18,8
+안양시,60,55,12,11
+의왕시,30,28,7,4
+과천시,18,16,3,2
+수원시,110,95,24,19
+시흥시,52,48,15,9`;
+
+    function downloadSampleCSV() {
+      // Add UTF-8 BOM (\uFEFF) to guarantee Korean characters render correctly in Excel & Sheets
+      const blob = new Blob(['\uFEFF' + SAMPLE_CSV], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'schoolzone_student_sample.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /* =========================================================================
+       COPY TO CLIPBOARD HELPER
+       ========================================================================= */
+    function initCopyButtons() {
+      document.querySelectorAll('.btn-copy').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const text = btn.dataset.clipboard;
+          try {
+            await navigator.clipboard.writeText(text);
+            const orig = btn.textContent;
+            btn.textContent = '✅ 복사 완료!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = orig;
+              btn.classList.remove('copied');
+            }, 1800);
+          } catch (err) {
+            prompt('수식을 복사하세요 (Ctrl+C / Cmd+C):', text);
+          }
+        });
+      });
+    }
+
+    /* =========================================================================
+       CHECKLIST PROGRESS TRACKER
+       ========================================================================= */
+    function initChecklist() {
+      const checks = document.querySelectorAll('.task-check');
+      const fill = document.getElementById('progressFill');
+      const text = document.getElementById('progressText');
+
+      checks.forEach(chk => {
+        chk.addEventListener('change', () => {
+          chk.closest('.check-label').classList.toggle('checked', chk.checked);
+          const total = checks.length;
+          const done = document.querySelectorAll('.task-check:checked').length;
+          const pct = Math.round((done / total) * 100);
+          fill.style.width = `${pct}%`;
+          text.textContent = `${pct}%`;
+          if (pct === 100) {
+            text.textContent = '🎉 100% 완료!';
+            text.style.color = '#10b981';
+          } else {
+            text.style.color = 'var(--primary)';
+          }
+        });
+      });
+    }
+
+    /* =========================================================================
+       INIT
+       ========================================================================= */
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnDownloadCSV').addEventListener('click', downloadSampleCSV);
+      document.getElementById('btnPrintGuide').addEventListener('click', () => window.print());
+      initCopyButtons();
+      initChecklist();
+    });
+  </script>
+</body>
+</html>

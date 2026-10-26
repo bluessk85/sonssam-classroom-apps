@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>토너먼트 마스터 프로 | 전국대회 & 학교체육 리그·토너먼트 운영 시스템</title>
+  <meta name="description" content="배드민턴, 탁구, 피구, 풋살, e스포츠 리그·토너먼트 자동 대진표 및 실시간 다중 코트 점수판 운영 시스템" />
+  <meta property="og:title" content="토너먼트 마스터 프로 | 손쌤 에듀테크" />
+  <meta property="og:description" content="싱글 토너먼트, 풀 리그전, 조별리그+결선, 스위스 라운드, 실시간 코트 점수판" />
+  <meta name="theme-color" content="#1e1b4b" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #e0e7ff;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --court-court1: #3b82f6;
+      --court-court2: #10b981;
+      --court-court3: #f59e0b;
+      --court-court4: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      color: white;
+      padding: 24px 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-content {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+    }
+    .logo-text h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .logo-text p {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Button Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: #6366f1; color: white; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-warning:hover { background: #d97706; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-outline { background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.25); }
+    .btn-outline:hover { background: rgba(255,255,255,0.22); }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-sound { background: rgba(255,255,255,0.15); color: #f8fafc; font-size: 13px; padding: 8px 12px; }
+
+    /* Layout */
+    .main-container {
+      max-width: 1600px;
+      margin: 24px auto;
+      padding: 0 24px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 24px;
+      flex: 1;
+    }
+    @media (max-width: 1100px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    /* Sidebar / Setup Panel */
+    .setup-panel {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+    }
+    .panel-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #f8fafc;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    .sports-presets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .sport-btn {
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .sport-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .sport-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .tournament-types {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .type-btn {
+      padding: 12px 8px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .type-btn span { font-size: 20px; }
+    .type-btn:hover { border-color: var(--primary); background: #f5f3ff; }
+    .type-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Content Area */
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Top Stats & Quick Match Banner */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    .stat-info .label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .stat-info .value { font-size: 22px; font-weight: 800; color: var(--text); }
+
+    /* Court Dashboard */
+    .court-dashboard {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .court-dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .court-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .court-card {
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: white;
+      transition: all 0.2s;
+    }
+    .court-card.active-match {
+      border-color: #6366f1;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+    }
+    .court-header {
+      background: #f1f5f9;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .court-header .court-tag {
+      background: #6366f1;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .court-match-body {
+      padding: 16px;
+    }
+    .match-competitors {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .team-box {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+    .team-box.winner {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #065f46;
+      font-weight: 800;
+    }
+    .team-name {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-score {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+    .vs-circle {
+      font-size: 12px;
+      font-weight: 800;
+      color: #94a3b8;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .court-card-footer {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Tournament Bracket Area */
+    .bracket-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+    .bracket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .bracket-wrapper {
+      display: flex;
+      gap: 48px;
+      padding: 20px 10px;
+      min-width: fit-content;
+      align-items: stretch;
+    }
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 240px;
+      gap: 24px;
+    }
+    .round-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+    .bracket-match {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .bracket-match:hover {
+      border-color: #6366f1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.12);
+    }
+    .bracket-match.finished {
+      border-color: #cbd5e1;
+    }
+    .match-meta {
+      background: #f8fafc;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s;
+    }
+    .player-row:last-child { border-bottom: none; }
+    .player-row:hover { background: #f8fafc; }
+    .player-row.winner {
+      background: #ecfdf5;
+      font-weight: 800;
+      color: #047857;
+    }
+    .player-row.winner .score-pill {
+      background: #10b981;
+      color: white;
+    }
+    .score-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    /* League Table */
+    .league-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .league-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 14px;
+    }
+    .league-table th {
+      background: #f8fafc;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: #475569;
+      border-top: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      text-align: center;
+    }
+    .league-table td {
+      padding: 12px 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .league-table tr:hover td { background: #f8fafc; }
+    .league-table td.team-cell { text-align: left; font-weight: 700; }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .rank-1 { background: #fef08a; color: #854d0e; }
+    .rank-2 { background: #e2e8f0; color: #475569; }
+    .rank-3 { background: #fed7aa; color: #9a3412; }
+    .rank-other { background: #f1f5f9; color: #64748b; }
+
+    /* Score Editor Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; animation: modalIn 0.2s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .score-modal {
+      background: white;
+      border-radius: 20px;
+      max-width: 520px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-head h3 { font-size: 18px; font-weight: 800; color: var(--text); }
+    .btn-close {
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #94a3b8;
+    }
+    .scoreboard-box {
+      background: #0f172a;
+      border-radius: 16px;
+      padding: 24px;
+      color: white;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .score-team-name { font-size: 16px; font-weight: 700; margin-bottom: 10px; color: #cbd5e1; }
+    .score-number { font-size: 48px; font-weight: 900; color: #38bdf8; line-height: 1; font-family: monospace; }
+    .score-controls {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .score-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: none;
+      background: #334155;
+      color: white;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .score-btn:hover { background: #475569; }
+
+    /* Timer Widget */
+    .timer-widget {
+      background: #1e293b;
+      color: white;
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .timer-display {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: monospace;
+      color: #34d399;
+      letter-spacing: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; color: black; }
+      header, .setup-panel, .header-actions, .court-card-footer, .btn, .timer-widget { display: none !important; }
+      .main-container { display: block; width: 100%; margin: 0; padding: 0; }
+      .bracket-container, .league-container { box-shadow: none; border: 1px solid #999; page-break-inside: avoid; }
+      .bracket-wrapper { min-width: 100%; overflow: visible; }
+    }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo-area">
+        <div class="logo-icon">🏆</div>
+        <div class="logo-text">
+          <h1>토너먼트 마스터 프로 (Tournament Master Pro)</h1>
+          <p>학교 체육대회 & 전국 생활체육 리그·토너먼트 종합 운영 시스템</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-sound" id="btnWhistle" title="경기 시작/종료 호각">📢 호각(Whistle)</button>
+        <button class="btn btn-sound" id="btnBuzzer" title="타임아웃/경보 부저">🚨 부저(Buzzer)</button>
+
+        <div class="timer-widget">
+          <span style="font-size: 12px; color: #94a3b8; font-weight:700;">경기 타이머</span>
+          <span class="timer-display" id="timerText">07:00</span>
+          <button class="btn btn-success" style="padding: 6px 14px; font-size: 14px; min-height: 40px;" id="btnTimerToggle">시작</button>
+          <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 14px; min-height: 40px;" id="btnTimerReset">리셋</button>
+        </div>
+
+        <button class="btn btn-outline" id="btnPrint">🖨️ 대진표 인쇄</button>
+        <button class="btn btn-outline" id="btnExportCSV">📥 CSV 내보내기</button>
+        <button class="btn btn-outline" id="btnSaveSlot">💾 저장</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Left: Setup Sidebar -->
+    <aside class="setup-panel">
+      <div class="panel-title">⚙️ 대회 및 경기 설정</div>
+
+      <!-- Sports Presets -->
+      <div class="form-group">
+        <label class="form-label">종목 프리셋 선택</label>
+        <div class="sports-presets">
+          <button type="button" class="sport-btn active" data-sport="badminton">🏸 배드민턴</button>
+          <button type="button" class="sport-btn" data-sport="tabletennis">🏓 탁구</button>
+          <button type="button" class="sport-btn" data-sport="dodgeball">🏐 피구</button>
+          <button type="button" class="sport-btn" data-sport="futsal">⚽ 풋살/축구</button>
+          <button type="button" class="sport-btn" data-sport="basketball">🏀 농구</button>
+          <button type="button" class="sport-btn" data-sport="esports">🎮 e스포츠/보드</button>
+        </div>
+      </div>
+
+      <!-- Tournament Engine -->
+      <div class="form-group">
+        <label class="form-label">대회 진행 방식</label>
+        <div class="tournament-types">
+          <button type="button" class="type-btn active" data-type="single">
+            <span>🏆</span>
+            <div>토너먼트</div>
+            <small style="font-weight: normal; font-size: 11px; opacity: 0.8;">Single Elimination</small>
+          </button>
+          <button type="button" class="type-btn" data-type="league">
+            <span>🔄</span>
+            <div>풀 리그전</div>
+            <small style="font-weight: normal; font-size: 11px; opacity: 0.8;">Round Robin</small>
+          </button>
+          <button type="button" class="type-btn" data-type="group-stage">
+            <span>🎪</span>
+            <div>조별리그+결선</div>
+            <small style="font-weight: normal; font-size: 11px; opacity: 0.8;">Groups to Playoff</small>
+          </button>
+          <button type="button" class="type-btn" data-type="swiss">
+            <span>🇨🇭</span>
+            <div>스위스 라운드</div>
+            <small style="font-weight: normal; font-size: 11px; opacity: 0.8;">Swiss System</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tournament Title -->
+      <div class="form-group">
+        <label class="form-label" for="inputTourTitle">대회 명칭</label>
+        <input type="text" id="inputTourTitle" class="form-input" value="학급 배드민턴 챔피언십" />
+      </div>
+
+      <!-- Court & Rule Config -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label class="form-label" for="selectCourts">동시 사용 코트</label>
+          <select id="selectCourts" class="form-select">
+            <option value="1">1개 코트</option>
+            <option value="2" selected>2개 코트</option>
+            <option value="3">3개 코트</option>
+            <option value="4">4개 코트</option>
+            <option value="6">6개 코트</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputTargetScore">세트 목표 점수</label>
+          <input type="number" id="inputTargetScore" class="form-input" value="15" min="1" max="100" />
+        </div>
+      </div>
+
+      <!-- Team / Player List -->
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="form-label" for="textareaTeams">참가 선수/팀 목록 (한 줄에 1명/팀)</label>
+          <span id="playerCountBadge" style="font-size: 12px; color: var(--primary); font-weight: 700;">8팀</span>
+        </div>
+        <textarea id="textareaTeams" class="form-textarea" rows="7" placeholder="참가자 또는 모둠명을 입력하세요...">1모둠 (김민준, 이서윤)
+2모둠 (박도윤, 정하은)
+3모둠 (이도현, 최지우)
+4모둠 (정시우, 강서아)
+5모둠 (한예준, 윤채원)
+6모둠 (오지호, 임수아)
+7모둠 (신건우, 송지안)
+8모둠 (유승우, 배은서)</textarea>
+        <div style="display: flex; gap: 6px; margin-top: 4px;">
+          <button type="button" class="btn btn-secondary" style="flex:1; font-size:12px; padding:6px;" id="btnSample8">8팀 예시</button>
+          <button type="button" class="btn btn-secondary" style="flex:1; font-size:12px; padding:6px;" id="btnSample16">16팀 예시</button>
+          <button type="button" class="btn btn-secondary" style="flex:1; font-size:12px; padding:6px;" id="btnShuffle">🔀 무작위 셔플</button>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button type="button" class="btn btn-primary" style="padding: 14px; font-size: 16px; justify-content: center;" id="btnGenerate">
+        ⚡ 새로운 대진표 생성하기
+      </button>
+
+      <!-- Storage Info -->
+      <div style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid var(--border); padding-top: 12px;">
+        💡 경기 결과는 브라우저에 자동 실시간 저장됩니다.
+      </div>
+    </aside>
+
+    <!-- Right: Match Dashboard & Brackets -->
+    <section class="content-area">
+      <!-- Top Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-box">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <div class="label">총 참가팀</div>
+            <div class="value" id="statTotalTeams">8팀</div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">⚔️</div>
+          <div class="stat-info">
+            <div class="label">총 경기 수</div>
+            <div class="value" id="statTotalMatches">7경기</div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <div class="label">완료된 경기</div>
+            <div class="value" id="statCompletedMatches">0경기</div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">🎖️</div>
+          <div class="stat-info">
+            <div class="label">현재 선두 / 우승</div>
+            <div class="value" id="statLeader" style="font-size: 16px; color: #4f46e5;">진행 중</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Court Allocation Dashboard -->
+      <div class="court-dashboard">
+        <div class="court-dashboard-header">
+          <h2 style="font-size: 18px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+            🏟️ 코트별 실시간 경기 현황
+          </h2>
+          <div style="font-size: 13px; color: var(--text-muted);">
+            코트 카드를 누르면 점수 입력 및 승자 확정이 가능합니다.
+          </div>
+        </div>
+        <div class="court-grid" id="courtGrid">
+          <!-- Dynamic court cards injected by JS -->
+        </div>
+      </div>
+
+      <!-- Main Brackets / League View -->
+      <div class="bracket-container" id="bracketContainer">
+        <div class="bracket-header">
+          <div>
+            <h2 id="viewTitle" style="font-size: 20px; font-weight: 800;">🏆 토너먼트 대진표</h2>
+            <p id="viewSubtitle" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">선수를 클릭하여 승리팀을 결정하거나 코트에서 점수를 입력하세요.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" id="btnToggleBronze">🥉 3·4위전 표시</button>
+            <button class="btn btn-primary" id="btnFullscreenView">🖥️ 대형 전광판 모드</button>
+          </div>
+        </div>
+
+        <div id="bracketViewArea">
+          <!-- Interactive Bracket or League rendered here -->
+        </div>
+      </div>
+
+      <!-- League Table View (shown if League or Group Stage active) -->
+      <div class="league-container" id="leagueContainer" style="display: none;">
+        <div class="bracket-header">
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800;">📊 종합 리그 순위표</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">경기 결과가 입력되면 승점(승 3점, 무 1점, 패 0점), 득실차 순으로 자동 정렬됩니다.</p>
+          </div>
+        </div>
+        <table class="league-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">순위</th>
+              <th style="text-align: left;">선수 / 팀명</th>
+              <th>경기수</th>
+              <th>승</th>
+              <th>무</th>
+              <th>패</th>
+              <th>득점</th>
+              <th>실점</th>
+              <th>득실차</th>
+              <th style="color: var(--primary); font-weight: 800;">승점</th>
+            </tr>
+          </thead>
+          <tbody id="leagueTableBody">
+            <!-- Dynamic league rows injected here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Score Editor Modal -->
+  <div class="modal-backdrop" id="scoreModalBackdrop">
+    <div class="score-modal">
+      <div class="modal-head">
+        <h3 id="modalMatchTitle">경기 점수 입력</h3>
+        <button class="btn-close" id="btnModalClose">&times;</button>
+      </div>
+
+      <div class="scoreboard-box">
+        <div>
+          <div class="score-team-name" id="modalTeam1Name">1모둠</div>
+          <div class="score-number" id="modalScore1">0</div>
+          <div class="score-controls">
+            <button class="score-btn" onclick="changeScore(1, -1)">-</button>
+            <button class="score-btn" onclick="changeScore(1, 1)">+</button>
+            <button class="score-btn" onclick="changeScore(1, 5)">+5</button>
+          </div>
+        </div>
+        <div style="font-size: 20px; font-weight: 800; color: #64748b;">VS</div>
+        <div>
+          <div class="score-team-name" id="modalTeam2Name">2모둠</div>
+          <div class="score-number" id="modalScore2">0</div>
+          <div class="score-controls">
+            <button class="score-btn" onclick="changeScore(2, -1)">-</button>
+            <button class="score-btn" onclick="changeScore(2, 1)">+</button>
+            <button class="score-btn" onclick="changeScore(2, 5)">+5</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="btnModalCancel">취소</button>
+        <button class="btn btn-success" id="btnModalSaveMatch">🏆 경기 종료 및 승자 확정</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       AUDIO SYNTHESIZER (Pure Web Audio API - Zero External Files)
+       ========================================================================= */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playWhistleSound() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      // Authentic referee whistle with acoustic beating (2600Hz & 2850Hz)
+      osc1.frequency.setValueAtTime(2600, audioCtx.currentTime);
+      osc2.frequency.setValueAtTime(2850, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + 0.4);
+      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.55);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start();
+      osc2.start();
+      osc1.stop(audioCtx.currentTime + 0.6);
+      osc2.stop(audioCtx.currentTime + 0.6);
+    }
+
+    function playBuzzerSound() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime + 0.6);
+      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.7);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.75);
+    }
+
+    function playFanfareSound() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + idx * 0.12);
+        gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + idx * 0.12 + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.6);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.65);
+      });
+    }
+
+    /* =========================================================================
+       STATE & TOURNAMENT ENGINE
+       ========================================================================= */
+    const state = {
+      title: '학급 배드민턴 챔피언십',
+      sport: 'badminton',
+      type: 'single', // 'single', 'league', 'group-stage', 'swiss'
+      courts: 2,
+      targetScore: 15,
+      teams: [],
+      matches: [], // All matches
+      activeModalMatchId: null,
+      currentScore1: 0,
+      currentScore2: 0,
+      showBronze: true,
+      timerSeconds: 420,
+      timerInterval: null,
+      timerRunning: false
+    };
+
+    const SPORT_PRESETS = {
+      badminton: { name: '배드민턴', targetScore: 15, courts: 2, type: 'single' },
+      tabletennis: { name: '탁구', targetScore: 11, courts: 2, type: 'single' },
+      dodgeball: { name: '피구', targetScore: 10, courts: 1, type: 'single' },
+      futsal: { name: '풋살/축구', targetScore: 5, courts: 1, type: 'league' },
+      basketball: { name: '농구', targetScore: 20, courts: 1, type: 'single' },
+      esports: { name: 'e스포츠/보드', targetScore: 2, courts: 4, type: 'single' }
+    };
+
+    /* =========================================================================
+       INIT & EVENT LISTENERS
+       ========================================================================= */
+    function init() {
+      bindEvents();
+      if (restoreSaved()) return;
+      parseTeamsFromTextarea();
+      generateTournament();
+    }
+
+    // 새로고침해도 대진표와 경기 결과가 남도록 자동 저장/복원
+    function autoSave() {
+      try {
+        localStorage.setItem('tournament_master_save', JSON.stringify({
+          title: state.title, sport: state.sport, type: state.type, courts: state.courts,
+          targetScore: state.targetScore, teams: state.teams, matches: state.matches
+        }));
+      } catch (e) {}
+    }
+    function restoreSaved() {
+      try {
+        const data = JSON.parse(localStorage.getItem('tournament_master_save') || 'null');
+        if (!data || !Array.isArray(data.matches) || !data.matches.length) return false;
+        Object.assign(state, data);
+        document.getElementById('textareaTeams').value = (data.teams || []).join('\n');
+        document.getElementById('inputTourTitle').value = data.title || '';
+        if (data.targetScore) document.getElementById('inputTargetScore').value = data.targetScore;
+        if (data.courts) document.getElementById('selectCourts').value = data.courts;
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === state.type));
+        document.querySelectorAll('.sport-btn').forEach(b => b.classList.toggle('active', b.dataset.sport === state.sport));
+        updateTeamCountBadge();
+        updateTitles();
+        updateCourts();
+        renderBrackets();
+        updateLeagueTable();
+        updateStats();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function bindEvents() {
+      // Sports Preset buttons
+      document.querySelectorAll('.sport-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const sportKey = btn.dataset.sport;
+          state.sport = sportKey;
+          const preset = SPORT_PRESETS[sportKey];
+          if (preset) {
+            document.getElementById('inputTargetScore').value = preset.targetScore;
+            state.targetScore = preset.targetScore;
+            document.getElementById('selectCourts').value = preset.courts;
+            state.courts = preset.courts;
+            setTournamentType(preset.type);
+          }
+        });
+      });
+
+      // Tournament Type buttons
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setTournamentType(btn.dataset.type);
+        });
+      });
+
+      // Sound buttons
+      document.getElementById('btnWhistle').addEventListener('click', playWhistleSound);
+      document.getElementById('btnBuzzer').addEventListener('click', playBuzzerSound);
+
+      // Timer Controls
+      document.getElementById('btnTimerToggle').addEventListener('click', toggleTimer);
+      document.getElementById('btnTimerReset').addEventListener('click', resetTimer);
+
+      // Print & Export
+      document.getElementById('btnPrint').addEventListener('click', () => window.print());
+      document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+      document.getElementById('btnSaveSlot').addEventListener('click', saveToLocalStorage);
+
+      // Sample Teams & Shuffle
+      document.getElementById('btnSample8').addEventListener('click', () => setSampleTeams(8));
+      document.getElementById('btnSample16').addEventListener('click', () => setSampleTeams(16));
+      document.getElementById('btnShuffle').addEventListener('click', shuffleTeams);
+
+      // Generate Button
+      document.getElementById('btnGenerate').addEventListener('click', () => {
+        parseTeamsFromTextarea();
+        state.title = document.getElementById('inputTourTitle').value.trim() || '학교 체육 대회';
+        state.targetScore = parseInt(document.getElementById('inputTargetScore').value) || 15;
+        state.courts = parseInt(document.getElementById('selectCourts').value) || 2;
+        generateTournament();
+      });
+
+      // Textarea live count
+      document.getElementById('textareaTeams').addEventListener('input', updateTeamCountBadge);
+
+      // Modal
+      document.getElementById('btnModalClose').addEventListener('click', closeModal);
+      document.getElementById('btnModalCancel').addEventListener('click', closeModal);
+      document.getElementById('btnModalSaveMatch').addEventListener('click', saveModalMatch);
+
+      // 3/4 Match toggle
+      document.getElementById('btnToggleBronze').addEventListener('click', () => {
+        state.showBronze = !state.showBronze;
+        document.getElementById('btnToggleBronze').style.background = state.showBronze ? '#e0e7ff' : '';
+        renderBrackets();
+      });
+
+      // Fullscreen
+      document.getElementById('btnFullscreenView').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+    }
+
+    function setTournamentType(type) {
+      state.type = type;
+      document.querySelectorAll('.type-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.type === type);
+      });
+      document.getElementById('leagueContainer').style.display = (type === 'league' || type === 'group-stage') ? 'block' : 'none';
+      updateTitles();
+    }
+
+    function updateTitles() {
+      const titles = {
+        'single': { title: '🏆 싱글 토너먼트 대진표', sub: '각 매치의 승자가 다음 라운드로 진출합니다.' },
+        'league': { title: '🔄 풀 리그전 (전체 총대진)', sub: '모든 참가팀이 한 번씩 맞붙는 총력전 리그입니다.' },
+        'group-stage': { title: '🎪 조별 리그 & 본선 토너먼트', sub: '각 조 상위 1, 2위가 본선 결선 토너먼트로 직행합니다.' },
+        'swiss': { title: '🇨🇭 스위스 시스템 대진표', sub: '승점이 유사한 팀끼리 공정하게 매칭되는 래더 라운드입니다.' }
+      };
+      const info = titles[state.type] || titles.single;
+      document.getElementById('viewTitle').textContent = info.title;
+      document.getElementById('viewSubtitle').textContent = info.sub;
+    }
+
+    function parseTeamsFromTextarea() {
+      const text = document.getElementById('textareaTeams').value;
+      state.teams = text.split('\n')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      updateTeamCountBadge();
+    }
+
+    function updateTeamCountBadge() {
+      const count = document.getElementById('textareaTeams').value.split('\n').filter(t => t.trim().length > 0).length;
+      document.getElementById('playerCountBadge').textContent = `${count}팀`;
+    }
+
+    function setSampleTeams(count) {
+      const names = [
+        '1모둠 (김민준, 이서윤)', '2모둠 (박도윤, 정하은)', '3모둠 (이도현, 최지우)', '4모둠 (정시우, 강서아)',
+        '5모둠 (한예준, 윤채원)', '6모둠 (오지호, 임수아)', '7모둠 (신건우, 송지안)', '8모둠 (유승우, 배은서)',
+        '9모둠 (조준호, 문채은)', '10모둠 (권태양, 손가은)', '11모둠 (송민석, 노예린)', '12모둠 (황현우, 고은별)',
+        '13모둠 (안지후, 곽민아)', '14모둠 (홍지민, 배소율)', '15모둠 (서우진, 장하윤)', '16모둠 (전서진, 김다온)'
+      ];
+      document.getElementById('textareaTeams').value = names.slice(0, count).join('\n');
+      parseTeamsFromTextarea();
+      generateTournament();
+    }
+
+    function shuffleTeams() {
+      parseTeamsFromTextarea();
+      for (let i = state.teams.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.teams[i], state.teams[j]] = [state.teams[j], state.teams[i]];
+      }
+      document.getElementById('textareaTeams').value = state.teams.join('\n');
+      generateTournament();
+    }
+
+    /* =========================================================================
+       TOURNAMENT GENERATION LOGIC
+       ========================================================================= */
+    function generateTournament() {
+      if (state.teams.length < 2) {
+        alert('최소 2개 이상의 팀/선수를 입력해주세요.');
+        return;
+      }
+
+      state.matches = [];
+      if (state.type === 'single') {
+        generateSingleElimination();
+      } else if (state.type === 'league') {
+        generateFullLeague();
+      } else if (state.type === 'group-stage') {
+        generateGroupStage();
+      } else if (state.type === 'swiss') {
+        generateSwissRounds();
+      }
+
+      updateCourts();
+      renderBrackets();
+      updateLeagueTable();
+      updateStats();
+    }
+
+    // Single Elimination Engine with perfect BYE handling
+    function generateSingleElimination() {
+      const n = state.teams.length;
+      const power = Math.pow(2, Math.ceil(Math.log2(n)));
+      const byes = power - n;
+
+      let round1Participants = [];
+      // Seeding distribution
+      for (let i = 0; i < power; i++) {
+        if (i < n) round1Participants.push(state.teams[i]);
+        else round1Participants.push(null); // BYE
+      }
+
+      // Interleave for standard tournament seeding
+      const seeded = interleaveSeeds(round1Participants);
+
+      const totalRounds = Math.log2(power);
+      let matchCounter = 1;
+
+      // Round 1
+      const round1Matches = [];
+      for (let i = 0; i < power; i += 2) {
+        const t1 = seeded[i];
+        const t2 = seeded[i + 1];
+        const match = {
+          id: `R1-M${Math.floor(i/2) + 1}`,
+          num: matchCounter++,
+          round: 1,
+          roundName: totalRounds === 1 ? '결승전' : (totalRounds === 2 ? '준결승' : '1회전'),
+          team1: t1,
+          team2: t2,
+          score1: 0,
+          score2: 0,
+          winner: null,
+          court: null,
+          status: 'pending' // pending, playing, finished, bye
+        };
+
+        // Automatic BYE advancement
+        if (t1 && !t2) {
+          match.winner = t1;
+          match.status = 'bye';
+        } else if (!t1 && t2) {
+          match.winner = t2;
+          match.status = 'bye';
+        }
+
+        round1Matches.push(match);
+        state.matches.push(match);
+      }
+
+      // Subsequent Rounds
+      let prevMatches = round1Matches;
+      for (let r = 2; r <= totalRounds; r++) {
+        const currentRoundMatches = [];
+        const isFinal = (r === totalRounds);
+        const isSemi = (r === totalRounds - 1);
+        const roundName = isFinal ? '🏆 결승전' : (isSemi ? '준결승전' : `${r}회전`);
+
+        for (let i = 0; i < prevMatches.length; i += 2) {
+          const m1 = prevMatches[i];
+          const m2 = prevMatches[i + 1];
+          const match = {
+            id: `R${r}-M${Math.floor(i/2) + 1}`,
+            num: matchCounter++,
+            round: r,
+            roundName: roundName,
+            team1: m1.winner || 'TBD',
+            team2: m2.winner || 'TBD',
+            score1: 0,
+            score2: 0,
+            winner: null,
+            court: null,
+            status: 'pending',
+            parentM1: m1.id,
+            parentM2: m2.id
+          };
+          currentRoundMatches.push(match);
+          state.matches.push(match);
+        }
+        prevMatches = currentRoundMatches;
+      }
+    }
+
+    function interleaveSeeds(arr) {
+      if (arr.length <= 2) return arr;
+      const res = [];
+      for (let i = 0; i < arr.length / 2; i++) {
+        res.push(arr[i]);
+        res.push(arr[arr.length - 1 - i]);
+      }
+      return res;
+    }
+
+    // Full League (Round Robin) Engine
+    function generateFullLeague() {
+      const teams = [...state.teams];
+      if (teams.length % 2 !== 0) teams.push('BYE (휴식)');
+      const totalRounds = teams.length - 1;
+      const matchesPerRound = teams.length / 2;
+      let matchCounter = 1;
+
+      for (let r = 0; r < totalRounds; r++) {
+        for (let m = 0; m < matchesPerRound; m++) {
+          const t1 = teams[m];
+          const t2 = teams[teams.length - 1 - m];
+          if (t1 === 'BYE (휴식)' || t2 === 'BYE (휴식)') continue;
+
+          state.matches.push({
+            id: `L-R${r+1}-M${m+1}`,
+            num: matchCounter++,
+            round: r + 1,
+            roundName: `${r + 1}라운드`,
+            team1: t1,
+            team2: t2,
+            score1: 0,
+            score2: 0,
+            winner: null,
+            court: null,
+            status: 'pending'
+          });
+        }
+        // Rotate teams around the first one
+        teams.splice(1, 0, teams.pop());
+      }
+    }
+
+    // Group Stage + Playoff
+    function generateGroupStage() {
+      const numGroups = Math.min(4, Math.max(2, Math.floor(state.teams.length / 3)));
+      const groups = Array.from({ length: numGroups }, () => []);
+      state.teams.forEach((t, i) => groups[i % numGroups].push(t));
+
+      let matchCounter = 1;
+      groups.forEach((groupTeams, gIdx) => {
+        const groupChar = String.fromCharCode(65 + gIdx); // Group A, B, C, D
+        for (let i = 0; i < groupTeams.length; i++) {
+          for (let j = i + 1; j < groupTeams.length; j++) {
+            state.matches.push({
+              id: `G${groupChar}-M${matchCounter}`,
+              num: matchCounter++,
+              round: gIdx + 1,
+              roundName: `${groupChar}조 리그`,
+              team1: groupTeams[i],
+              team2: groupTeams[j],
+              score1: 0,
+              score2: 0,
+              winner: null,
+              court: null,
+              status: 'pending',
+              group: groupChar
+            });
+          }
+        }
+      });
+    }
+
+    // Swiss System Round 1
+    function generateSwissRounds() {
+      let matchCounter = 1;
+      for (let i = 0; i < state.teams.length; i += 2) {
+        state.matches.push({
+          id: `SW-R1-M${Math.floor(i/2) + 1}`,
+          num: matchCounter++,
+          round: 1,
+          roundName: '스위스 1라운드',
+          team1: state.teams[i],
+          team2: state.teams[i+1] || 'BYE',
+          score1: 0,
+          score2: 0,
+          winner: state.teams[i+1] ? null : state.teams[i],
+          status: state.teams[i+1] ? 'pending' : 'bye'
+        });
+      }
+    }
+
+    /* =========================================================================
+       COURT MANAGEMENT & SCHEDULING
+       ========================================================================= */
+    function updateCourts() {
+      const courtGrid = document.getElementById('courtGrid');
+      courtGrid.innerHTML = '';
+
+      // Assign pending playable matches to courts
+      const playableMatches = state.matches.filter(m =>
+        m.status === 'pending' &&
+        m.team1 && m.team1 !== 'TBD' && m.team1 !== 'BYE' &&
+        m.team2 && m.team2 !== 'TBD' && m.team2 !== 'BYE'
+      );
+
+      for (let c = 1; c <= state.courts; c++) {
+        // Find if a match is already assigned to this court or grab the next playable
+        let match = state.matches.find(m => m.court === c && m.status !== 'finished') || null;
+        if (!match && playableMatches.length > 0) {
+          match = playableMatches.shift();
+          match.court = c;
+          match.status = 'playing';
+        }
+
+        const courtCard = document.createElement('div');
+        courtCard.className = `court-card ${match ? 'active-match' : ''}`;
+
+        if (!match) {
+          courtCard.innerHTML = `
+            <div class="court-header">
+              <span>🏟️ 제 ${c} 코트</span>
+              <span class="court-tag" style="background:#94a3b8;">대기 중</span>
+            </div>
+            <div class="court-match-body" style="text-align: center; color: #94a3b8; padding: 32px 16px;">
+              진행 대기 중인 경기가 없습니다.
+            </div>
+          `;
+        } else {
+          courtCard.innerHTML = `
+            <div class="court-header">
+              <span>🏟️ 제 ${c} 코트 (${match.roundName})</span>
+              <span class="court-tag">경기 진행 중</span>
+            </div>
+            <div class="court-match-body">
+              <div class="match-competitors">
+                <div class="team-box ${match.winner === match.team1 ? 'winner' : ''}">
+                  <div class="team-name" title="${match.team1}">${match.team1}</div>
+                  <div class="team-score">${match.score1}</div>
+                </div>
+                <div class="vs-circle">VS</div>
+                <div class="team-box ${match.winner === match.team2 ? 'winner' : ''}">
+                  <div class="team-name" title="${match.team2}">${match.team2}</div>
+                  <div class="team-score">${match.score2}</div>
+                </div>
+              </div>
+              <div class="court-card-footer">
+                <button class="btn btn-primary" style="flex:1; padding: 8px;" onclick="openScoreModal('${match.id}')">
+                  ✏️ 점수 입력 / 판정
+                </button>
+                <button class="btn btn-sound" onclick="playWhistleSound()">📢 호각</button>
+              </div>
+            </div>
+          `;
+        }
+        courtGrid.appendChild(courtCard);
+      }
+    }
+
+    /* =========================================================================
+       RENDER BRACKETS & LEAGUE
+       ========================================================================= */
+    function renderBrackets() {
+      const area = document.getElementById('bracketViewArea');
+      area.innerHTML = '';
+
+      if (state.type === 'single') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bracket-wrapper';
+
+        // Group matches by round
+        const rounds = {};
+        state.matches.forEach(m => {
+          if (!rounds[m.round]) rounds[m.round] = [];
+          rounds[m.round].push(m);
+        });
+
+        Object.keys(rounds).sort((a,b) => a - b).forEach(r => {
+          const roundDiv = document.createElement('div');
+          roundDiv.className = 'bracket-round';
+          const rMatches = rounds[r];
+
+          const title = document.createElement('div');
+          title.className = 'round-title';
+          title.textContent = rMatches[0].roundName;
+          roundDiv.appendChild(title);
+
+          rMatches.forEach(match => {
+            const matchCard = document.createElement('div');
+            matchCard.className = `bracket-match ${match.status === 'finished' ? 'finished' : ''}`;
+            matchCard.innerHTML = `
+              <div class="match-meta">
+                <span>경기 #${match.num}</span>
+                <span>${match.court ? `코트 ${match.court}` : (match.status === 'finished' ? '종료' : '대기')}</span>
+              </div>
+              <div class="player-row ${match.winner === match.team1 ? 'winner' : ''}" onclick="quickPickWinner('${match.id}', 1)">
+                <span>${match.team1 || 'TBD'}</span>
+                <span class="score-pill">${match.score1}</span>
+              </div>
+              <div class="player-row ${match.winner === match.team2 ? 'winner' : ''}" onclick="quickPickWinner('${match.id}', 2)">
+                <span>${match.team2 || 'TBD'}</span>
+                <span class="score-pill">${match.score2}</span>
+              </div>
+            `;
+            roundDiv.appendChild(matchCard);
+          });
+          wrapper.appendChild(roundDiv);
+        });
+        area.appendChild(wrapper);
+      } else {
+        // Grid of match cards for League / Group Stage
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+        grid.style.gap = '14px';
+
+        state.matches.forEach(match => {
+          const card = document.createElement('div');
+          card.className = 'bracket-match';
+          card.innerHTML = `
+            <div class="match-meta">
+              <span>${match.roundName} #${match.num}</span>
+              <span>${match.status === 'finished' ? '종료' : '예정'}</span>
+            </div>
+            <div class="player-row ${match.winner === match.team1 ? 'winner' : ''}" onclick="openScoreModal('${match.id}')">
+              <span>${match.team1}</span>
+              <span class="score-pill">${match.score1}</span>
+            </div>
+            <div class="player-row ${match.winner === match.team2 ? 'winner' : ''}" onclick="openScoreModal('${match.id}')">
+              <span>${match.team2}</span>
+              <span class="score-pill">${match.score2}</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        area.appendChild(grid);
+      }
+    }
+
+    function updateLeagueTable() {
+      const tbody = document.getElementById('leagueTableBody');
+      tbody.innerHTML = '';
+
+      // Compute statistics for each team
+      const stats = {};
+      state.teams.forEach(t => {
+        stats[t] = { name: t, played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+      });
+
+      state.matches.forEach(m => {
+        if (m.status === 'finished' && stats[m.team1] && stats[m.team2]) {
+          stats[m.team1].played++;
+          stats[m.team2].played++;
+          stats[m.team1].gf += m.score1;
+          stats[m.team1].ga += m.score2;
+          stats[m.team2].gf += m.score2;
+          stats[m.team2].ga += m.score1;
+
+          if (m.score1 > m.score2) {
+            stats[m.team1].win++;
+            stats[m.team1].pts += 3;
+            stats[m.team2].loss++;
+          } else if (m.score2 > m.score1) {
+            stats[m.team2].win++;
+            stats[m.team2].pts += 3;
+            stats[m.team1].loss++;
+          } else {
+            stats[m.team1].draw++;
+            stats[m.team2].draw++;
+            stats[m.team1].pts += 1;
+            stats[m.team2].pts += 1;
+          }
+        }
+      });
+
+      Object.values(stats).forEach(s => s.gd = s.gf - s.ga);
+
+      // Sort by PTS > GD > GF
+      const sorted = Object.values(stats).sort((a,b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.gd !== a.gd) return b.gd - a.gd;
+        return b.gf - a.gf;
+      });
+
+      sorted.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        let rankClass = 'rank-other';
+        if (idx === 0) rankClass = 'rank-1';
+        else if (idx === 1) rankClass = 'rank-2';
+        else if (idx === 2) rankClass = 'rank-3';
+
+        tr.innerHTML = `
+          <td><span class="rank-badge ${rankClass}">${idx + 1}</span></td>
+          <td class="team-cell">${s.name}</td>
+          <td>${s.played}</td>
+          <td>${s.win}</td>
+          <td>${s.draw}</td>
+          <td>${s.loss}</td>
+          <td>${s.gf}</td>
+          <td>${s.ga}</td>
+          <td style="font-weight:700; color:${s.gd > 0 ? '#10b981' : (s.gd < 0 ? '#ef4444' : '#64748b')}">${s.gd > 0 ? '+'+s.gd : s.gd}</td>
+          <td style="font-weight:900; color:var(--primary); font-size:16px;">${s.pts}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (sorted.length > 0 && sorted[0].pts > 0) {
+        document.getElementById('statLeader').textContent = `1위: ${sorted[0].name}`;
+      }
+    }
+
+    function updateStats() {
+      autoSave();
+      document.getElementById('statTotalTeams').textContent = `${state.teams.length}팀`;
+      document.getElementById('statTotalMatches').textContent = `${state.matches.length}경기`;
+      const finished = state.matches.filter(m => m.status === 'finished' || m.status === 'bye').length;
+      document.getElementById('statCompletedMatches').textContent = `${finished}경기`;
+
+      // Check tournament champion
+      if (state.type === 'single') {
+        const finalMatch = state.matches[state.matches.length - 1];
+        if (finalMatch && finalMatch.winner && finalMatch.winner !== 'TBD') {
+          document.getElementById('statLeader').textContent = `👑 우승: ${finalMatch.winner}`;
+        }
+      }
+    }
+
+    /* =========================================================================
+       SCORE MODAL & MATCH COMPLETION
+       ========================================================================= */
+    function openScoreModal(matchId) {
+      const match = state.matches.find(m => m.id === matchId);
+      if (!match || !match.team1 || match.team1 === 'TBD' || !match.team2 || match.team2 === 'TBD') {
+        alert('아직 양 팀이 확정되지 않은 경기입니다.');
+        return;
+      }
+      state.activeModalMatchId = matchId;
+      state.currentScore1 = match.score1 || 0;
+      state.currentScore2 = match.score2 || 0;
+
+      document.getElementById('modalMatchTitle').textContent = `${match.roundName} #${match.num} 점수 입력`;
+      document.getElementById('modalTeam1Name').textContent = match.team1;
+      document.getElementById('modalTeam2Name').textContent = match.team2;
+      document.getElementById('modalScore1').textContent = state.currentScore1;
+      document.getElementById('modalScore2').textContent = state.currentScore2;
+
+      document.getElementById('scoreModalBackdrop').classList.add('open');
+    }
+
+    function changeScore(teamIndex, delta) {
+      if (teamIndex === 1) {
+        state.currentScore1 = Math.max(0, state.currentScore1 + delta);
+        document.getElementById('modalScore1').textContent = state.currentScore1;
+      } else {
+        state.currentScore2 = Math.max(0, state.currentScore2 + delta);
+        document.getElementById('modalScore2').textContent = state.currentScore2;
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('scoreModalBackdrop').classList.remove('open');
+      state.activeModalMatchId = null;
+    }
+
+    function saveModalMatch() {
+      const match = state.matches.find(m => m.id === state.activeModalMatchId);
+      if (!match) return;
+
+      match.score1 = state.currentScore1;
+      match.score2 = state.currentScore2;
+
+      if (match.score1 > match.score2) {
+        match.winner = match.team1;
+      } else if (match.score2 > match.score1) {
+        match.winner = match.team2;
+      } else {
+        match.winner = '무승부';
+      }
+
+      match.status = 'finished';
+      playFanfareSound();
+      launchConfetti();
+
+      // Advance winner to next round in single elimination
+      if (state.type === 'single') {
+        advanceWinnerInBracket(match);
+      }
+
+      closeModal();
+      updateCourts();
+      renderBrackets();
+      updateLeagueTable();
+      updateStats();
+    }
+
+    function quickPickWinner(matchId, winnerTeamIndex) {
+      const match = state.matches.find(m => m.id === matchId);
+      if (!match || !match.team1 || match.team1 === 'TBD' || !match.team2 || match.team2 === 'TBD') return;
+
+      if (winnerTeamIndex === 1) {
+        match.winner = match.team1;
+        match.score1 = state.targetScore;
+        match.score2 = Math.max(0, state.targetScore - 2);
+      } else {
+        match.winner = match.team2;
+        match.score2 = state.targetScore;
+        match.score1 = Math.max(0, state.targetScore - 2);
+      }
+      match.status = 'finished';
+
+      playWhistleSound();
+      advanceWinnerInBracket(match);
+      updateCourts();
+      renderBrackets();
+      updateStats();
+    }
+
+    function advanceWinnerInBracket(finishedMatch) {
+      // Find dependent child match in subsequent round
+      const childMatch = state.matches.find(m => m.parentM1 === finishedMatch.id || m.parentM2 === finishedMatch.id);
+      if (childMatch) {
+        if (childMatch.parentM1 === finishedMatch.id) {
+          childMatch.team1 = finishedMatch.winner;
+        } else if (childMatch.parentM2 === finishedMatch.id) {
+          childMatch.team2 = finishedMatch.winner;
+        }
+      }
+    }
+
+    /* =========================================================================
+       TIMER WIDGET
+       ========================================================================= */
+    function toggleTimer() {
+      const btn = document.getElementById('btnTimerToggle');
+      if (state.timerRunning) {
+        clearInterval(state.timerInterval);
+        state.timerRunning = false;
+        btn.textContent = '시작';
+        btn.className = 'btn btn-success';
+      } else {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        state.timerRunning = true;
+        btn.textContent = '일시정지';
+        btn.className = 'btn btn-warning';
+        state.timerInterval = setInterval(() => {
+          if (state.timerSeconds > 0) {
+            state.timerSeconds--;
+            renderTimer();
+            if (state.timerSeconds === 0) {
+              clearInterval(state.timerInterval);
+              state.timerRunning = false;
+              btn.textContent = '시작';
+              btn.className = 'btn btn-success';
+              playBuzzerSound();
+              alert('⏰ 경기 시간이 종료되었습니다!');
+            }
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(state.timerInterval);
+      state.timerRunning = false;
+      state.timerSeconds = 420; // 7 mins default
+      document.getElementById('btnTimerToggle').textContent = '시작';
+      document.getElementById('btnTimerToggle').className = 'btn btn-success';
+      renderTimer();
+    }
+
+    function renderTimer() {
+      const mins = String(Math.floor(state.timerSeconds / 60)).padStart(2, '0');
+      const secs = String(state.timerSeconds % 60).padStart(2, '0');
+      document.getElementById('timerText').textContent = `${mins}:${secs}`;
+    }
+
+    /* =========================================================================
+       CONFETTI SYSTEM
+       ========================================================================= */
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#38bdf8'];
+
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 0.7) * 16,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 10,
+          alpha: 1
+        });
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = 0;
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.35; // gravity
+            p.rotation += p.vRot;
+            p.alpha -= 0.015;
+            active++;
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+          }
+        });
+
+        if (active > 0) requestAnimationFrame(frame);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    /* =========================================================================
+       EXPORT & STORAGE
+       ========================================================================= */
+    function exportCSV() {
+      let csv = '\uFEFF라운드,경기번호,팀1,점수1,점수2,팀2,승자\n';
+      state.matches.forEach(m => {
+        csv += `"${m.roundName}",${m.num},"${m.team1 || ''}",${m.score1},${m.score2},"${m.team2 || ''}","${m.winner || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${state.title}_대진표결과.csv`;
+      link.click();
+    }
+
+    function saveToLocalStorage() {
+      const data = {
+        title: state.title,
+        sport: state.sport,
+        type: state.type,
+        courts: state.courts,
+        teams: state.teams,
+        matches: state.matches
+      };
+      localStorage.setItem('tournament_master_save', JSON.stringify(data));
+      alert('💾 현재 대진표와 경기 결과가 브라우저에 안전하게 저장되었습니다.');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

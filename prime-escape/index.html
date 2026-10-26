@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수학 서바이벌: 소수 탈출 프로 (Prime Escape Pro)</title>
+  <meta name="description" content="초등 5~6학년 및 중등 수학 소수와 합성수를 사이버 러너 액션으로 익히는 교실 수업 웹앱" />
+  <meta property="og:title" content="소수 탈출 프로 (Prime Escape Pro) | 손쌤 에듀테크" />
+  <meta property="og:description" content="함정 수(51, 91) 해설, Web Audio 음향 합성, 교실 대형화면 프로젝터 지원" />
+  <meta name="theme-color" content="#070913" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --panel-bg: rgba(16, 22, 43, 0.78);
+      --panel-border: rgba(56, 75, 133, 0.45);
+      --prime-color: #10b981;
+      --prime-glow: rgba(16, 185, 129, 0.45);
+      --comp-color: #ef4444;
+      --comp-glow: rgba(239, 68, 68, 0.45);
+      --trap-color: #f59e0b;
+      --trap-glow: rgba(245, 158, 11, 0.55);
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+        linear-gradient(180deg, #070913 0%, #0d1224 100%);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-orbitron { font-family: 'Orbitron', monospace; }
+
+    /* Top Navigation / Status Header */
+    header {
+      background: rgba(10, 15, 30, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+      font-size: 22px;
+    }
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #c084fc, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-badge {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .action-rules {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .rule-prime { color: #34d399; display: flex; align-items: center; gap: 6px; }
+    .rule-comp { color: #f87171; display: flex; align-items: center; gap: 6px; }
+
+    .header-tools {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .tool-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .tool-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 24px;
+    }
+
+    /* Panels */
+    .glass-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 22px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #93c5fd;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Left Panel: Settings & Game Modes */
+    .control-group {
+      margin-bottom: 16px;
+    }
+    .control-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .mode-select, select, input[type="number"] {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .mode-select:focus, select:focus, input[type="number"]:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    }
+
+    .preset-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .chip-btn:hover, .chip-btn.active {
+      background: rgba(139, 92, 246, 0.25);
+      border-color: var(--accent-purple);
+      color: white;
+    }
+
+    .survivor-tracker {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: auto;
+      text-align: center;
+    }
+    .survivor-count {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #60a5fa;
+      line-height: 1;
+      margin: 8px 0;
+    }
+    .survivor-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .btn-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+    }
+    .btn-circle:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* Center Stage: Hero Theater Screen */
+    .center-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .screen-card {
+      flex: 1;
+      background: radial-gradient(circle at center, rgba(30, 41, 77, 0.6) 0%, rgba(13, 18, 38, 0.95) 100%);
+      border: 2px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 0 50px rgba(139, 92, 246, 0.2), inset 0 0 60px rgba(0, 0, 0, 0.6);
+      border-radius: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen-card.prime-glow {
+      border-color: var(--prime-color);
+      box-shadow: 0 0 60px var(--prime-glow), inset 0 0 40px rgba(16, 185, 129, 0.2);
+    }
+    .screen-card.comp-glow {
+      border-color: var(--comp-color);
+      box-shadow: 0 0 60px var(--comp-glow), inset 0 0 40px rgba(239, 68, 68, 0.2);
+    }
+    .screen-card.trap-glow {
+      border-color: var(--trap-color);
+      box-shadow: 0 0 70px var(--trap-glow), inset 0 0 50px rgba(245, 158, 11, 0.3);
+      animation: trap-shake 0.5s ease-in-out;
+    }
+
+    @keyframes trap-shake {
+      0%, 100% { transform: translate(0, 0); }
+      20%, 60% { transform: translate(-8px, 4px); }
+      40%, 80% { transform: translate(8px, -4px); }
+    }
+
+    .round-meta {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .step-pill {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #c084fc;
+      background: rgba(192, 132, 252, 0.12);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(192, 132, 252, 0.25);
+    }
+    .timer-pill {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.12);
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .giant-number-wrap {
+      text-align: center;
+      margin: 20px 0;
+      position: relative;
+    }
+    .giant-number {
+      font-size: clamp(8rem, 16vw, 13rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.7));
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Result Reveal Box */
+    .reveal-box {
+      width: 100%;
+      background: rgba(8, 12, 26, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .state-hidden {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .state-hidden .icon { font-size: 2.2rem; animation: float 2s infinite ease-in-out; }
+    .state-hidden .question { font-size: 1.3rem; font-weight: 800; color: #cbd5e1; }
+    .state-hidden .subtext { font-size: 0.9rem; color: var(--text-muted); }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .state-revealed {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .result-badge {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .result-factors {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px 16px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+    .trap-alert {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #dc2626;
+      color: white;
+      font-weight: 900;
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      animation: bounce 0.8s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Controller Bar */
+    .controls-bar {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+    }
+    .btn-main {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border: none;
+      color: white;
+      font-size: 1.4rem;
+      font-weight: 900;
+      padding: 18px 30px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.45);
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(124, 58, 237, 0.6);
+      filter: brightness(1.1);
+    }
+    .btn-main:active {
+      transform: translateY(1px);
+    }
+
+    .btn-reveal {
+      background: linear-gradient(135deg, #059669, #10b981);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45);
+    }
+    .btn-reveal:hover {
+      box-shadow: 0 14px 32px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.18s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      transform: translateY(-2px);
+    }
+
+    /* Right Panel: History & Leaderboard */
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .history-item {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .history-item.prime { border-left: 4px solid var(--prime-color); }
+    .history-item.comp { border-left: 4px solid var(--comp-color); }
+    .history-item.trap { border-left: 4px solid var(--trap-color); background: rgba(245, 158, 11, 0.1); }
+
+    .history-num { font-weight: 900; font-size: 1.15rem; }
+    .history-tag { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .tag-prime { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-comp { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .tag-trap { background: rgba(245, 158, 11, 0.25); color: #fbbf24; }
+
+    /* Victory Modal / Canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      main { grid-template-columns: 1fr; }
+      .survivor-tracker { margin-top: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">수학 서바이벌: 소수 탈출 PRO</div>
+        <div class="brand-badge">교실 대형 스크린 레크리에이션 v2.5</div>
+      </div>
+    </div>
+
+    <!-- Action Legend -->
+    <div class="action-rules">
+      <div class="rule-prime">
+        <span>🧍</span> 소수 = <strong>일어서기!</strong>
+      </div>
+      <span style="opacity: 0.3">|</span>
+      <div class="rule-comp">
+        <span>🧎</span> 합성수 = <strong>앉기!</strong>
+      </div>
+    </div>
+
+    <div class="header-tools">
+      <button class="tool-btn" id="soundBtn" title="소리 켜기/끄기">🔊 소리 켜짐</button>
+      <button class="tool-btn" id="fullScreenBtn" title="전체화면 (F)">⛶ 전체화면</button>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main>
+    <!-- Left Sidebar: Settings & Controls -->
+    <aside class="glass-panel">
+      <div class="panel-header">
+        <span>⚙️ 게임 설정</span>
+        <span style="font-size: 0.75rem; color: #94a3b8;">Spacebar 연동</span>
+      </div>
+
+      <div class="control-group">
+        <label>게임 모드 선택</label>
+        <select id="gameModeSelect">
+          <option value="prime" selected>소수 vs 합성수 (기본)</option>
+          <option value="trap-focus">낚시 합성수 집중 훈련</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>수 범위 프리셋</label>
+        <div class="preset-chips">
+          <button class="chip-btn" data-min="1" data-max="30">1 ~ 30 (입문)</button>
+          <button class="chip-btn active" data-min="1" data-max="50">1 ~ 50 (표준)</button>
+          <button class="chip-btn" data-min="1" data-max="100">1 ~ 100 (실전)</button>
+          <button class="chip-btn" data-min="100" data-max="200">100 ~ 200 (영재)</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>제한시간 카운트다운</label>
+        <select id="timerSelect">
+          <option value="0">제한시간 없음 (수동)</option>
+          <option value="3">3초 (초스피드)</option>
+          <option value="5" selected>5초 (표준)</option>
+          <option value="8">8초 (여유)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>단축키 안내</label>
+        <p style="font-size: 0.78rem; color: #94a3b8; line-height: 1.4;">
+          • <strong>Spacebar</strong>: 다음 수 / 정답 공개<br>
+          • <strong>↑ / ↓</strong>: 생존자 수 조절<br>
+          • <strong>F</strong>: 전체화면 토글
+        </p>
+      </div>
+
+      <!-- Survivor Live Tracker -->
+      <div class="survivor-tracker">
+        <div style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">현재 생존 학생 수</div>
+        <div class="survivor-count font-orbitron" id="survivorDisplay">25</div>
+        <div class="survivor-btns">
+          <button class="btn-circle" id="survivorMinus" title="1명 탈락">-</button>
+          <button class="btn-circle" id="survivorPlus" title="1명 추가">+</button>
+          <button class="tool-btn" id="survivorReset" style="padding: 4px 10px; font-size: 0.75rem;">초기화</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Stage -->
+    <section class="center-stage">
+      <div class="screen-card" id="screenCard">
+        <!-- Card Top Bar -->
+        <div class="round-meta">
+          <div class="step-pill font-orbitron" id="stepIndicator">ROUND 1</div>
+          <div class="timer-pill font-orbitron" id="timerIndicator" style="display: none;">
+            <span>⏱️</span> <span id="timerSeconds">5.0</span>s
+          </div>
+        </div>
+
+        <!-- Giant Display Number -->
+        <div class="giant-number-wrap">
+          <div class="giant-number font-orbitron" id="displayNumber">?</div>
+        </div>
+
+        <!-- Reveal & Answer Box -->
+        <div class="reveal-box" id="revealBox">
+          <div class="state-hidden" id="stateHidden">
+            <div class="icon">🤔</div>
+            <div class="question">소수일까요? 합성수일까요?</div>
+            <div class="subtext">3초 안에 기립 🧍 또는 착석 🧎 을 결정하세요!</div>
+          </div>
+
+          <div class="state-revealed" id="stateRevealed">
+            <div class="result-badge" id="resultTitle">소수 (Prime)</div>
+            <div class="result-factors font-orbitron" id="resultFactors">약수: 1, 17</div>
+            <div class="trap-alert" id="trapAlert" style="display: none;">
+              ⚠️ 낚시 특급 합성수 함정!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Controller -->
+      <div class="controls-bar">
+        <button class="btn-main" id="actionBtn">
+          <span>🚀 게임 시작 (Space)</span>
+        </button>
+        <button class="btn-secondary" id="restartBtn">
+          <span>🔄 새로고침</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Sidebar: History & Hall of Fame -->
+    <aside class="glass-panel">
+      <div class="panel-header">
+        <span>📜 출제 히스토리</span>
+        <button class="tool-btn" id="clearHistoryBtn" style="padding: 6px 12px; font-size: 0.85rem; min-height: 36px;">비우기</button>
+      </div>
+
+      <div class="history-list" id="historyList">
+        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 40px;">
+          출제된 숫자가 이곳에 기록됩니다.
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    /* ─────────────────────────────────────────────────────────────
+       Web Audio API Sound Engine (100% Synthetic, Zero External MP3)
+    ───────────────────────────────────────────────────────────── */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      play(type) {
+        if (this.muted || (window.isSonssamAudioMuted && window.isSonssamAudioMuted())) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        if (type === 'tick') {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(800, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        } else if (type === 'prime') {
+          // Major Triumph Chord (C5 - E5 - G5 - C6)
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+            gain.gain.setValueAtTime(0.15, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.4);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.45);
+          });
+        } else if (type === 'composite') {
+          // Downward Thud
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.linearRampToValueAtTime(75, now + 0.35);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.36);
+        } else if (type === 'trap') {
+          // Sci-Fi Alarm Siren
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(250, now);
+          osc.frequency.linearRampToValueAtTime(650, now + 0.15);
+          osc.frequency.linearRampToValueAtTime(250, now + 0.3);
+          osc.frequency.linearRampToValueAtTime(700, now + 0.45);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.56);
+        } else if (type === 'victory') {
+          // Fanfare
+          [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.1);
+            gain.gain.setValueAtTime(0.2, now + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.6);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.1);
+            osc.stop(now + i * 0.1 + 0.65);
+          });
+        }
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Mathematical Helpers & Trap Numbers
+    ───────────────────────────────────────────────────────────── */
+    const TRICK_COMPOSITES = new Set([
+      51,  // 3 * 17
+      57,  // 3 * 19
+      87,  // 3 * 29
+      91,  // 7 * 13
+      93,  // 3 * 31
+      111, // 3 * 37
+      117, // 9 * 13
+      119, // 7 * 17
+      133, // 7 * 19
+      143, // 11 * 13
+      161, // 7 * 23
+      209, // 11 * 19
+      221  // 13 * 17
+    ]);
+
+    function isPrime(n) {
+      if (n <= 1) return false;
+      if (n <= 3) return true;
+      if (n % 2 === 0 || n % 3 === 0) return false;
+      for (let i = 5; i * i <= n; i += 6) {
+        if (n % i === 0 || n % (i + 2) === 0) return false;
+      }
+      return true;
+    }
+
+    function getFactors(n) {
+      const factors = [];
+      for (let i = 1; i <= n; i++) {
+        if (n % i === 0) factors.push(i);
+      }
+      return factors;
+    }
+
+    function getPrimeFactorization(n) {
+      if (n <= 1) return `${n}`;
+      let d = 2;
+      const res = [];
+      let temp = n;
+      while (temp >= 2) {
+        if (temp % d === 0) {
+          res.push(d);
+          temp /= d;
+        } else {
+          d++;
+        }
+      }
+      return res.join(' × ');
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Game Engine State
+    ───────────────────────────────────────────────────────────── */
+    const sounds = new SoundEngine();
+    let currentNumber = null;
+    let roundStep = 0;
+    let isRevealed = true; // start ready for next number
+    let survivors = 25;
+    let timerInterval = null;
+    let timerRemaining = 0;
+    let minRange = 1;
+    let maxRange = 50;
+    const history = [];
+
+    // DOM Elements
+    const displayNumber = document.getElementById('displayNumber');
+    const screenCard = document.getElementById('screenCard');
+    const stateHidden = document.getElementById('stateHidden');
+    const stateRevealed = document.getElementById('stateRevealed');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultFactors = document.getElementById('resultFactors');
+    const trapAlert = document.getElementById('trapAlert');
+    const actionBtn = document.getElementById('actionBtn');
+    const stepIndicator = document.getElementById('stepIndicator');
+    const timerIndicator = document.getElementById('timerIndicator');
+    const timerSeconds = document.getElementById('timerSeconds');
+    const historyList = document.getElementById('historyList');
+    const survivorDisplay = document.getElementById('survivorDisplay');
+    const soundBtn = document.getElementById('soundBtn');
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+
+    // Generator logic
+    function generateNextNumber() {
+      const mode = document.getElementById('gameModeSelect').value;
+      let candidate;
+      let attempts = 0;
+
+      if (mode === 'trap-focus') {
+        const pool = Array.from(TRICK_COMPOSITES).filter(n => n >= minRange && n <= Math.max(maxRange, 150));
+        if (pool.length > 0 && Math.random() < 0.6) {
+          candidate = pool[Math.floor(Math.random() * pool.length)];
+        }
+      }
+
+      if (!candidate) {
+        do {
+          candidate = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+          attempts++;
+        } while ((candidate === currentNumber || candidate === 1) && attempts < 20); // 1은 소수도 합성수도 아니라 출제하지 않음
+      }
+
+      return candidate;
+    }
+
+    function triggerNextNumber() {
+      roundStep++;
+      currentNumber = generateNextNumber();
+      isRevealed = false;
+
+      stepIndicator.textContent = `ROUND ${roundStep}`;
+      displayNumber.textContent = currentNumber;
+      
+      // Reset card visuals
+      screenCard.className = 'screen-card';
+      stateHidden.style.display = 'flex';
+      stateRevealed.style.display = 'none';
+
+      // Update button
+      actionBtn.innerHTML = '<span>👁️ 정답 공개 (Space)</span>';
+      actionBtn.className = 'btn-main btn-reveal';
+
+      // Timer trigger
+      const timeLimit = parseInt(document.getElementById('timerSelect').value);
+      if (timeLimit > 0) {
+        startTimer(timeLimit);
+      } else {
+        timerIndicator.style.display = 'none';
+      }
+    }
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      timerRemaining = seconds;
+      timerIndicator.style.display = 'flex';
+      timerSeconds.textContent = timerRemaining.toFixed(1);
+
+      timerInterval = setInterval(() => {
+        timerRemaining -= 0.1;
+        if (timerRemaining <= 0) {
+          clearInterval(timerInterval);
+          timerSeconds.textContent = '0.0';
+          sounds.play('tick');
+        } else {
+          timerSeconds.textContent = timerRemaining.toFixed(1);
+          if (Math.round(timerRemaining * 10) % 10 === 0) {
+            sounds.play('tick');
+          }
+        }
+      }, 100);
+    }
+
+    function revealAnswer() {
+      clearInterval(timerInterval);
+      timerIndicator.style.display = 'none';
+      isRevealed = true;
+
+      const prime = isPrime(currentNumber);
+      const isTrap = TRICK_COMPOSITES.has(currentNumber);
+      const factors = getFactors(currentNumber);
+      const primeFact = getPrimeFactorization(currentNumber);
+
+      stateHidden.style.display = 'none';
+      stateRevealed.style.display = 'flex';
+
+      if (prime) {
+        screenCard.className = 'screen-card prime-glow';
+        resultTitle.textContent = '🎉 소수 (Prime Number)';
+        resultTitle.style.color = '#34d399';
+        resultFactors.textContent = `약수: ${factors.join(', ')} (1과 자기 자신만)`;
+        trapAlert.style.display = 'none';
+        sounds.play('prime');
+      } else {
+        if (isTrap) {
+          screenCard.className = 'screen-card trap-glow';
+          resultTitle.textContent = '🚨 낚시 특급 합성수!';
+          resultTitle.style.color = '#f59e0b';
+          trapAlert.style.display = 'inline-flex';
+          sounds.play('trap');
+        } else {
+          screenCard.className = 'screen-card comp-glow';
+          resultTitle.textContent = '💥 합성수 (Composite Number)';
+          resultTitle.style.color = '#f87171';
+          trapAlert.style.display = 'none';
+          sounds.play('composite');
+        }
+        resultFactors.innerHTML = `약수: ${factors.join(', ')} <br><span style="font-size:0.95rem; color:#94a3b8;">소인수분해: ${currentNumber} = ${primeFact}</span>`;
+      }
+
+      // Add to history
+      addHistoryRecord(currentNumber, prime, isTrap);
+
+      // Update button
+      actionBtn.innerHTML = '<span>➡️ 다음 숫자 (Space)</span>';
+      actionBtn.className = 'btn-main';
+    }
+
+    function addHistoryRecord(num, prime, isTrap) {
+      const item = document.createElement('div');
+      item.className = `history-item ${prime ? 'prime' : isTrap ? 'trap' : 'comp'}`;
+      
+      const tagClass = prime ? 'tag-prime' : isTrap ? 'tag-trap' : 'tag-comp';
+      const tagText = prime ? '소수' : isTrap ? '낚시 합성수' : '합성수';
+
+      item.innerHTML = `
+        <span class="history-num font-orbitron">${num}</span>
+        <span class="history-tag ${tagClass}">${tagText}</span>
+      `;
+
+      if (historyList.children.length === 1 && historyList.children[0].tagName === 'DIV' && historyList.children[0].style.textAlign === 'center') {
+        historyList.innerHTML = '';
+      }
+      historyList.prepend(item);
+    }
+
+    // Button & Key Interactions
+    function handleMainAction() {
+      if (isRevealed) {
+        triggerNextNumber();
+      } else {
+        revealAnswer();
+      }
+    }
+
+    actionBtn.addEventListener('click', handleMainAction);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleMainAction();
+      } else if ((e.key === 'f' || e.key === 'F') && !document.getElementById('sonssamGlobalNav')) {
+        toggleFullScreen(); // 공통 상단바가 있으면 그쪽 F 단축키가 처리 (두 번 토글 방지)
+      } else if (e.key === 'ArrowUp') {
+        updateSurvivors(1);
+      } else if (e.key === 'ArrowDown') {
+        updateSurvivors(-1);
+      }
+    });
+
+    // Survivor Counter
+    function updateSurvivors(delta) {
+      survivors = Math.max(0, survivors + delta);
+      survivorDisplay.textContent = survivors;
+      if (survivors === 1) {
+        sounds.play('victory');
+        triggerConfetti();
+      }
+    }
+
+    document.getElementById('survivorMinus').addEventListener('click', () => updateSurvivors(-1));
+    document.getElementById('survivorPlus').addEventListener('click', () => updateSurvivors(1));
+    document.getElementById('survivorReset').addEventListener('click', () => {
+      const val = prompt('초기 학생 수를 입력하세요:', '25');
+      if (val && !isNaN(val)) {
+        survivors = parseInt(val);
+        survivorDisplay.textContent = survivors;
+      }
+    });
+
+    // Preset Chips
+    document.querySelectorAll('.chip-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        minRange = parseInt(btn.dataset.min);
+        maxRange = parseInt(btn.dataset.max);
+      });
+    });
+
+    // Fullscreen Toggle
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        fullScreenBtn.textContent = '✕ 창모드';
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        fullScreenBtn.textContent = '⛶ 전체화면';
+      }
+    }
+    fullScreenBtn.addEventListener('click', toggleFullScreen);
+
+    // Sound Toggle
+    soundBtn.addEventListener('click', () => {
+      sounds.muted = !sounds.muted;
+      soundBtn.textContent = sounds.muted ? '🔇 음소거' : '🔊 소리 켜짐';
+    });
+
+    // Restart
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      if (confirm('게임을 처음부터 다시 시작하시겠습니까?')) {
+        roundStep = 0;
+        currentNumber = null;
+        isRevealed = true;
+        displayNumber.textContent = '?';
+        stepIndicator.textContent = 'ROUND 1';
+        screenCard.className = 'screen-card';
+        stateHidden.style.display = 'flex';
+        stateRevealed.style.display = 'none';
+        actionBtn.innerHTML = '<span>🚀 게임 시작 (Space)</span>';
+        actionBtn.className = 'btn-main';
+        historyList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 40px;">출제된 숫자가 이곳에 기록됩니다.</div>';
+      }
+    });
+
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      historyList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 40px;">출제된 숫자가 이곳에 기록됩니다.</div>';
+    });
+
+    // Confetti Canvas Animation
+    function triggerConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#f43f5e', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'];
+
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 18,
+          vy: (Math.random() - 0.7) * 18,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 10,
+          alpha: 1
+        });
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = 0;
+
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.35; // gravity
+          p.rotation += p.rotSpeed;
+          p.alpha -= 0.008;
+
+          if (p.alpha > 0) {
+            active++;
+            ctx.save();
+            ctx.globalAlpha = p.alpha;
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+          }
+        });
+
+        if (active > 0) {
+          requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      render();
+    }
+  </script>
+</body>
+</html>

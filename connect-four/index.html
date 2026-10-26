@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사목 대결 — 네 칸 연결 | 교실 전략 보드게임</title>
+  <meta name="description" content="가로·세로·대각선으로 같은 색 네 칸을 먼저 잇는 사목(커넥트 포) 교실 보드게임. 1인 대 AI, 2인 한 기기 대전, 전자칠판 터치와 숫자 키 1~7을 지원합니다." />
+  <meta property="og:title" content="사목 대결 — 네 칸 연결 | 손쌤 에듀테크" />
+  <meta property="og:description" content="초등 교실용 사목 대결. 초급·고급 AI와 패스 앤 플레이 2인 대전, 승리 네 칸 강조." />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🟡</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-mid: #1e1b4b;
+      --card: rgba(30, 41, 59, 0.88);
+      --board: #312e81;
+      --board-deep: #1e1b4b;
+      --hole: #0b1220;
+      --p1: #facc15;
+      --p1-deep: #ca8a04;
+      --p2: #f43f5e;
+      --p2-deep: #be123c;
+      --accent: #38bdf8;
+      --indigo: #818cf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.12);
+      --radius: 18px;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 42%),
+        radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.16) 0%, transparent 38%),
+        linear-gradient(180deg, #1e1b4b 0%, #0f172a 55%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header.app-header {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 24px;
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(244, 63, 94, 0.22));
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.18);
+    }
+    .brand h1 { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; }
+    .brand p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 16px;
+      border-radius: 11px;
+      border: 1px solid transparent;
+      font: inherit; font-size: 13px; font-weight: 800;
+      cursor: pointer; user-select: none;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+    }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { background: rgba(255, 255, 255, 0.14); }
+
+    .mode-bar {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.55);
+      border-bottom: 1px solid var(--border);
+    }
+    .mode-btn {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit; font-size: 14px; font-weight: 800;
+      cursor: pointer;
+      transition: 0.18s;
+    }
+    .mode-btn:hover { color: #fff; border-color: var(--indigo); }
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(56, 189, 248, 0.2));
+      border-color: #818cf8;
+      color: #e0e7ff;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.28);
+    }
+    .mode-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    .status-banner {
+      max-width: 1280px;
+      width: 100%;
+      margin: 16px auto 0;
+      padding: 0 20px;
+    }
+    .status-inner {
+      border: 2px solid rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.1);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      min-height: 68px;
+    }
+    .status-inner.p1 { border-color: rgba(250, 204, 21, 0.7); background: rgba(250, 204, 21, 0.12); box-shadow: 0 0 22px rgba(250, 204, 21, 0.12); }
+    .status-inner.p2 { border-color: rgba(244, 63, 94, 0.7); background: rgba(244, 63, 94, 0.12); box-shadow: 0 0 22px rgba(244, 63, 94, 0.12); }
+    .status-inner.win { border-color: #fde68a; background: rgba(253, 224, 71, 0.16); }
+    .status-inner.draw { border-color: #94a3b8; background: rgba(148, 163, 184, 0.12); }
+    .status-copy { display: flex; align-items: center; gap: 12px; }
+    .turn-chip {
+      padding: 5px 12px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #111827;
+      background: var(--p1);
+    }
+    .status-inner.p2 .turn-chip { background: var(--p2); color: #fff; }
+    .status-inner.win .turn-chip { background: #fde68a; }
+    .status-inner.draw .turn-chip { background: #cbd5e1; }
+    .status-title { font-size: clamp(16px, 2.4vw, 22px); font-weight: 900; }
+    .status-sub { font-size: 13px; color: #cbd5e1; margin-top: 2px; }
+    .score-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .score-pill {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .score-pill.y { color: #fde68a; }
+    .score-pill.r { color: #fda4af; }
+
+    main.stage {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 20px 36px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .board-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .col-keys {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      width: min(100%, 760px);
+      gap: 8px;
+      padding: 0 10px;
+    }
+    .col-key {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 900;
+      color: #c7d2fe;
+      letter-spacing: 0.04em;
+    }
+
+    .board-frame {
+      width: min(100%, 760px);
+      background: linear-gradient(180deg, #4338ca 0%, #312e81 55%, #1e1b4b 100%);
+      border: 2px solid rgba(165, 180, 252, 0.35);
+      border-radius: 28px;
+      padding: 14px 12px 18px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .column {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 8px;
+      border: 0;
+      padding: 6px 2px;
+      background: transparent;
+      border-radius: 16px;
+      cursor: pointer;
+      position: relative;
+    }
+    .column:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); }
+    .column:focus-visible { outline: 3px solid #fde68a; outline-offset: 2px; }
+    .column:disabled { cursor: default; }
+    .column:disabled::before { display: none; }
+    .column.preview-p1::before,
+    .column.preview-p2::before {
+      content: "";
+      position: absolute;
+      top: -10px; left: 50%;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    .column.preview-p1::before { background: var(--p1); box-shadow: 0 0 12px var(--p1); }
+    .column.preview-p2::before { background: var(--p2); box-shadow: 0 0 12px var(--p2); }
+
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #1e293b 0%, var(--hole) 72%);
+      box-shadow: inset 0 6px 10px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(15, 23, 42, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .disc {
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      transform: translateY(calc(-1 * var(--fall, 420px)));
+      animation: dropDisc 0.48s cubic-bezier(0.2, 0.85, 0.25, 1.15) forwards;
+    }
+    .disc.p1 {
+      background: radial-gradient(circle at 32% 28%, #fef08a 0%, var(--p1) 42%, var(--p1-deep) 100%);
+      box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.25);
+    }
+    .disc.p2 {
+      background: radial-gradient(circle at 32% 28%, #fda4af 0%, var(--p2) 42%, var(--p2-deep) 100%);
+      box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.25);
+    }
+    .cell.win {
+      box-shadow: inset 0 6px 10px rgba(0, 0, 0, 0.35), 0 0 0 5px #fde68a, 0 0 28px 10px rgba(253, 224, 71, 0.95);
+    }
+    .cell.win .disc {
+      animation: winPulse 0.9s ease-in-out infinite;
+      transform: none;
+    }
+
+    @keyframes dropDisc {
+      to { transform: translateY(0); }
+    }
+    @keyframes winPulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.35); }
+    }
+
+    .hint-row {
+      display: flex; justify-content: space-between; align-items: center;
+      width: min(100%, 760px);
+      color: var(--text-muted);
+      font-size: 13px; font-weight: 700;
+      gap: 10px; flex-wrap: wrap;
+    }
+
+    .side {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .panel h2 {
+      font-size: 15px;
+      font-weight: 900;
+      color: #c7d2fe;
+      margin-bottom: 10px;
+    }
+    .panel ol, .panel ul { padding-left: 18px; }
+    .panel li {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+    .panel p { font-size: 13px; line-height: 1.6; color: #cbd5e1; }
+    .tip-box {
+      margin-top: 10px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #e0f2fe;
+    }
+    kbd {
+      display: inline-block;
+      min-width: 1.4em;
+      padding: 1px 6px;
+      border: 1px solid #64748b;
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: #1e293b;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    footer.note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 8px 16px 22px;
+    }
+
+    .help-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(2, 6, 23, 0.72);
+      z-index: 80;
+      place-items: center;
+      padding: 20px;
+    }
+    .help-backdrop.open { display: grid; }
+    .help-card {
+      width: min(640px, 100%);
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      max-height: 88vh;
+      overflow: auto;
+    }
+    .help-card h2 { font-size: 20px; margin-bottom: 10px; }
+    .help-card h3 { font-size: 15px; color: #a5b4fc; margin: 14px 0 6px; }
+    .help-card p, .help-card li { font-size: 14px; line-height: 1.6; color: #e2e8f0; }
+    .help-card ol, .help-card ul { padding-left: 20px; }
+
+    @media (max-width: 960px) {
+      main.stage { grid-template-columns: 1fr; }
+      .side { order: 2; }
+    }
+    @media (max-width: 560px) {
+      .brand h1 { font-size: 16px; }
+      .board-frame { padding: 8px 6px 12px; border-radius: 20px; }
+      .board, .col-keys { gap: 5px; }
+      .mode-btn { font-size: 12px; padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🟡</div>
+      <div>
+        <h1>사목 대결 — 네 칸 연결</h1>
+        <p>7열 × 6행 고전 사목 · 전자칠판·태블릿 터치와 숫자 키 1~7</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-ghost" id="btnHelp">규칙·수업 팁</button>
+      <button type="button" class="btn btn-ghost" id="btnSwapStart">선공 바꾸기</button>
+      <button type="button" class="btn btn-primary" id="btnRestart">새 대결 시작</button>
+    </div>
+  </header>
+
+  <div class="mode-bar" role="tablist" aria-label="대결 방식">
+    <button type="button" class="mode-btn active" data-mode="ai-easy">🤖 컴퓨터 대결 (초급)</button>
+    <button type="button" class="mode-btn" data-mode="ai-hard">🧠 컴퓨터 대결 (고급)</button>
+    <button type="button" class="mode-btn" data-mode="pvp">👥 둘이서 한 기기 (패스 앤 플레이)</button>
+  </div>
+
+  <div class="status-banner">
+    <div class="status-inner p1" id="statusInner">
+      <div class="status-copy">
+        <span class="turn-chip" id="turnChip">노란 팀</span>
+        <div>
+          <div class="status-title" id="statusTitle">노란 팀 차례입니다</div>
+          <div class="status-sub" id="statusSub">열을 누르거나 숫자 키 1~7로 말을 떨어뜨리세요.</div>
+        </div>
+      </div>
+      <div class="score-pills" aria-label="세트 점수">
+        <span class="score-pill y">노란 팀 <strong id="scoreY">0</strong></span>
+        <span class="score-pill r">빨간 팀 <strong id="scoreR">0</strong></span>
+        <span class="score-pill">무승부 <strong id="scoreD">0</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <main class="stage">
+    <section class="board-wrap" aria-label="사목 보드">
+      <div class="col-keys" aria-hidden="true">
+        <div class="col-key">1</div><div class="col-key">2</div><div class="col-key">3</div>
+        <div class="col-key">4</div><div class="col-key">5</div><div class="col-key">6</div>
+        <div class="col-key">7</div>
+      </div>
+      <div class="board-frame">
+        <div class="board" id="board"></div>
+      </div>
+      <div class="hint-row">
+        <span>말은 고른 열의 <strong style="color:#e2e8f0">가장 아래 빈칸</strong>에 쌓입니다.</span>
+        <span id="moveCount">0수</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>한눈에 보는 규칙</h2>
+        <ol>
+          <li>노란 팀과 빨간 팀이 번갈아 열을 고릅니다.</li>
+          <li>말은 그 열의 맨 아래부터 차곡차곡 쌓입니다.</li>
+          <li><strong>가로 · 세로 · 대각선</strong>으로 같은 색 네 칸을 먼저 이으면 승리합니다.</li>
+          <li>42칸이 가득 차고 아무도 못 이으면 무승부입니다.</li>
+        </ol>
+      </section>
+      <section class="panel">
+        <h2>교사 팁 · 초등 저~고학년</h2>
+        <p>전자칠판에서는 열을 크게 눌러 두고, 학생이 왜 그 열을 골랐는지 한 문장으로 말하게 하면 좋습니다.</p>
+        <div class="tip-box">
+          <strong>차례 지키기</strong> → <strong>무늬 찾기</strong>(가로·세로·대각선) → <strong>한 수 앞 막기</strong> → <strong>양쪽 위협 만들기</strong>.
+          저학년은 색깔과 차례만, 고학년은 “상대가 다음에 이길 수 있는 열”을 찾는 계획 수업을 합니다.
+        </div>
+      </section>
+      <section class="panel">
+        <h2>조작</h2>
+        <ul>
+          <li>터치·클릭: 열 전체를 누르면 낙하</li>
+          <li>키보드: <kbd>1</kbd>~<kbd>7</kbd> (숫자패드 포함)</li>
+          <li>전체화면: 상단 막대의 전체화면 또는 <kbd>F</kbd></li>
+          <li>소리는 허브 음소거 버튼을 따릅니다. 네트워크 없이 동작합니다.</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="note">손쌤 에듀테크 스위트 · 사목 대결은 기기 메모리에서만 진행되며 서버로 점수를 보내지 않습니다.</footer>
+
+  <div class="help-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="help-card">
+      <h2 id="helpTitle">사목 대결 수업 안내</h2>
+      <h3>게임 목표</h3>
+      <p>같은 색 말 네 개를 가로, 세로, 또는 대각선으로 먼저 연결하는 사람이 이깁니다. 바둑의 사목·오목과 같은 “연결” 감각을 기르는 짧은 전략 게임입니다.</p>
+      <h3>교실에서 이렇게</h3>
+      <ol>
+        <li>전자칠판에 띄우고 모둠 대표가 번갈아 열을 고릅니다.</li>
+        <li>두기 전에 “가로로 세 칸이 보여요”처럼 발견한 무늬를 말하게 합니다.</li>
+        <li>이긴 네 칸이 노랗게 빛나니, 승리 이유를 반 전체가 함께 확인합니다.</li>
+        <li>초급 AI는 실수도 하고, 고급 AI는 막는 수와 가운데 열을 더 잘 씁니다.</li>
+      </ol>
+      <h3>교육과정 연결</h3>
+      <p>위치와 방향(가로·세로·대각선), 차례와 규칙 지키기, 경우의 수를 떠올리며 한 수 앞을 계획하기. 저학년 놀이 수학부터 고학년 전략 토의까지 맞춥니다.</p>
+      <div style="text-align:right;margin-top:16px;">
+        <button type="button" class="btn btn-primary" id="btnHelpClose">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const COLS = 7;
+    const ROWS = 6;
+    const EMPTY = 0;
+    const P1 = 1;
+    const P2 = 2;
+    const DIRS = [
+      { dr: 0, dc: 1, name: "가로" },
+      { dr: 1, dc: 0, name: "세로" },
+      { dr: 1, dc: 1, name: "대각선" },
+      { dr: 1, dc: -1, name: "대각선" }
+    ];
+
+    const state = {
+      board: emptyBoard(),
+      mode: "ai-easy",
+      current: P1,
+      starter: P1,
+      locked: false,
+      over: false,
+      moves: 0,
+      scores: { y: 0, r: 0, d: 0 }
+    };
+
+    const boardEl = document.getElementById("board");
+    const statusInner = document.getElementById("statusInner");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusSub = document.getElementById("statusSub");
+    const turnChip = document.getElementById("turnChip");
+    const moveCount = document.getElementById("moveCount");
+
+    function emptyBoard() {
+      return Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+    }
+
+    function cloneBoard(board) {
+      return board.map((row) => row.slice());
+    }
+
+    function validColumns(board) {
+      const cols = [];
+      for (let c = 0; c < COLS; c++) if (board[0][c] === EMPTY) cols.push(c);
+      return cols;
+    }
+
+    function dropPiece(board, col, player) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r][col] === EMPTY) {
+          board[r][col] = player;
+          return r;
+        }
+      }
+      return -1;
+    }
+
+    function findWinFrom(board, row, col, player) {
+      for (const dir of DIRS) {
+        const cells = [[row, col]];
+        for (const sign of [1, -1]) {
+          for (let i = 1; i < 4; i++) {
+            const nr = row + dir.dr * i * sign;
+            const nc = col + dir.dc * i * sign;
+            if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || board[nr][nc] !== player) break;
+            cells.push([nr, nc]);
+          }
+        }
+        if (cells.length >= 4) return { cells, direction: dir.name };
+      }
+      return null;
+    }
+
+    function hasWin(board, player) {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c] !== player) continue;
+          if (findWinFrom(board, r, c, player)) return true;
+        }
+      }
+      return false;
+    }
+
+    function isDraw(board) {
+      return validColumns(board).length === 0;
+    }
+
+    function playerName(player) {
+      return player === P1 ? "노란 팀" : "빨간 팀";
+    }
+
+    function opponent(player) {
+      return player === P1 ? P2 : P1;
+    }
+
+    function isAiMode() {
+      return state.mode === "ai-easy" || state.mode === "ai-hard";
+    }
+
+    function isHumanTurn() {
+      if (state.over) return false;
+      if (!isAiMode()) return true;
+      return state.current === P1;
+    }
+
+    /* ---------- Audio (respects hub mute) ---------- */
+    let audioCtx = null;
+    function getAudio() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return null;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function tone(freq, dur, type, vol, slide) {
+      const ctx = getAudio();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      if (slide) osc.frequency.exponentialRampToValueAtTime(slide, ctx.currentTime + dur);
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur + 0.02);
+    }
+
+    function playDrop(player) {
+      tone(player === P1 ? 520 : 380, 0.14, "sine", 0.16, 220);
+    }
+
+    function playWin() {
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((f, i) => setTimeout(() => tone(f, 0.28, "triangle", 0.18), i * 110));
+    }
+
+    function playDraw() {
+      tone(180, 0.35, "triangle", 0.14, 90);
+    }
+
+    /* ---------- Render ---------- */
+    function cellEl(r, c) {
+      return boardEl.querySelector('[data-r="' + r + '"][data-c="' + c + '"]');
+    }
+
+    function buildBoard() {
+      boardEl.innerHTML = "";
+      for (let c = 0; c < COLS; c++) {
+        const colBtn = document.createElement("button");
+        colBtn.type = "button";
+        colBtn.className = "column";
+        colBtn.dataset.col = String(c);
+        colBtn.setAttribute("aria-label", (c + 1) + "열에 말 떨어뜨리기");
+        for (let r = 0; r < ROWS; r++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.r = String(r);
+          cell.dataset.c = String(c);
+          colBtn.appendChild(cell);
+        }
+        colBtn.addEventListener("click", () => tryDrop(c));
+        colBtn.addEventListener("mouseenter", () => setPreview(c, true));
+        colBtn.addEventListener("mouseleave", () => setPreview(c, false));
+        boardEl.appendChild(colBtn);
+      }
+    }
+
+    function setPreview(col, on) {
+      const btn = boardEl.children[col];
+      if (!btn) return;
+      btn.classList.remove("preview-p1", "preview-p2");
+      if (on && !state.locked && !state.over && isHumanTurn() && state.board[0][col] === EMPTY) {
+        btn.classList.add(state.current === P1 ? "preview-p1" : "preview-p2");
+      }
+    }
+
+    function paintStatic() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = cellEl(r, c);
+          if (!cell) continue;
+          cell.classList.remove("win");
+          cell.innerHTML = "";
+          const v = state.board[r][c];
+          if (v === EMPTY) continue;
+          const disc = document.createElement("div");
+          disc.className = "disc " + (v === P1 ? "p1" : "p2");
+          disc.style.animation = "none";
+          disc.style.transform = "none";
+          cell.appendChild(disc);
+        }
+      }
+    }
+
+    function animateDisc(row, col, player) {
+      const cell = cellEl(row, col);
+      if (!cell) return;
+      cell.innerHTML = "";
+      const disc = document.createElement("div");
+      disc.className = "disc " + (player === P1 ? "p1" : "p2");
+      const fall = (row + 1) * (cell.offsetHeight + 8);
+      disc.style.setProperty("--fall", fall + "px");
+      cell.appendChild(disc);
+    }
+
+    function clearPreviews() {
+      Array.from(boardEl.children).forEach((col) => {
+        col.classList.remove("preview-p1", "preview-p2");
+      });
+    }
+
+    function highlightWin(cells) {
+      clearPreviews();
+      cells.forEach(([r, c]) => {
+        const cell = cellEl(r, c);
+        if (cell) cell.classList.add("win");
+      });
+    }
+
+    function setStatus(kind, title, sub, chip) {
+      statusInner.className = "status-inner " + kind;
+      statusTitle.textContent = title;
+      statusSub.textContent = sub;
+      turnChip.textContent = chip;
+    }
+
+    function refreshHud() {
+      moveCount.textContent = state.moves + "수";
+      document.getElementById("scoreY").textContent = String(state.scores.y);
+      document.getElementById("scoreR").textContent = String(state.scores.r);
+      document.getElementById("scoreD").textContent = String(state.scores.d);
+      Array.from(boardEl.children).forEach((col, i) => {
+        const blocked = state.locked || state.over || !isHumanTurn() || state.board[0][i] !== EMPTY;
+        col.disabled = blocked;
+      });
+    }
+
+    function describeTurn() {
+      if (state.over) return;
+      const name = playerName(state.current);
+      if (isAiMode() && state.current === P2) {
+        setStatus("p2", "컴퓨터가 수를 고르는 중…", "고급은 가운데 열과 막는 수를 더 살핍니다.", "컴퓨터");
+      } else if (isAiMode()) {
+        setStatus("p1", "우리 반(노란 팀) 차례", "이을 수 있는 네 칸, 막아야 하는 열을 찾아보세요.", "노란 팀");
+      } else {
+        setStatus(state.current === P1 ? "p1" : "p2", name + " 차례입니다", "기기를 넘기지 말고 열을 고른 뒤 상대에게 자리를 바꿔 주세요.", name);
+      }
+      refreshHud();
+    }
+
+    /* ---------- AI ---------- */
+    function centerOrder(cols) {
+      return cols.slice().sort((a, b) => Math.abs(a - 3) - Math.abs(b - 3) || a - b);
+    }
+
+    function windowScore(cells, player) {
+      const opp = opponent(player);
+      let mine = 0, theirs = 0, empty = 0;
+      for (const v of cells) {
+        if (v === player) mine++;
+        else if (v === opp) theirs++;
+        else empty++;
+      }
+      if (mine === 4) return 100000;
+      if (theirs === 4) return -100000;
+      if (mine === 3 && empty === 1) return 120;
+      if (theirs === 3 && empty === 1) return -100;
+      if (mine === 2 && empty === 2) return 12;
+      if (theirs === 2 && empty === 2) return -8;
+      return 0;
+    }
+
+    function evaluate(board, player) {
+      let score = 0;
+      for (let r = 0; r < ROWS; r++) if (board[r][3] === player) score += 8;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS - 3; c++) {
+          score += windowScore([board[r][c], board[r][c + 1], board[r][c + 2], board[r][c + 3]], player);
+        }
+      }
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS - 3; r++) {
+          score += windowScore([board[r][c], board[r + 1][c], board[r + 2][c], board[r + 3][c]], player);
+        }
+      }
+      for (let r = 0; r < ROWS - 3; r++) {
+        for (let c = 0; c < COLS - 3; c++) {
+          score += windowScore([board[r][c], board[r + 1][c + 1], board[r + 2][c + 2], board[r + 3][c + 3]], player);
+        }
+        for (let c = 3; c < COLS; c++) {
+          score += windowScore([board[r][c], board[r + 1][c - 1], board[r + 2][c - 2], board[r + 3][c - 3]], player);
+        }
+      }
+      return score;
+    }
+
+    function winningColumn(board, player) {
+      for (const col of validColumns(board)) {
+        const next = cloneBoard(board);
+        const row = dropPiece(next, col, player);
+        if (row >= 0 && findWinFrom(next, row, col, player)) return col;
+      }
+      return null;
+    }
+
+    function easyMove(board) {
+      const win = winningColumn(board, P2);
+      if (win !== null) return win;
+      if (Math.random() < 0.35) {
+        const block = winningColumn(board, P1);
+        if (block !== null) return block;
+      }
+      const cols = validColumns(board);
+      return cols[Math.floor(Math.random() * cols.length)];
+    }
+
+    function minimax(board, depth, alpha, beta, maximizing) {
+      const valid = validColumns(board);
+      if (hasWin(board, P2)) return { score: 100000 + depth, col: valid[0] };
+      if (hasWin(board, P1)) return { score: -100000 - depth, col: valid[0] };
+      if (!valid.length || depth === 0) return { score: evaluate(board, P2), col: valid[0] };
+
+      if (maximizing) {
+        let best = { score: -Infinity, col: valid[0] };
+        for (const col of centerOrder(valid)) {
+          const next = cloneBoard(board);
+          dropPiece(next, col, P2);
+          const result = minimax(next, depth - 1, alpha, beta, false);
+          if (result.score > best.score) best = { score: result.score, col };
+          alpha = Math.max(alpha, best.score);
+          if (alpha >= beta) break;
+        }
+        return best;
+      }
+      let best = { score: Infinity, col: valid[0] };
+      for (const col of centerOrder(valid)) {
+        const next = cloneBoard(board);
+        dropPiece(next, col, P1);
+        const result = minimax(next, depth - 1, alpha, beta, true);
+        if (result.score < best.score) best = { score: result.score, col };
+        beta = Math.min(beta, best.score);
+        if (alpha >= beta) break;
+      }
+      return best;
+    }
+
+    function hardMove(board) {
+      const win = winningColumn(board, P2);
+      if (win !== null) return win;
+      const block = winningColumn(board, P1);
+      if (block !== null) return block;
+      return minimax(board, 5, -Infinity, Infinity, true).col;
+    }
+
+    function pickAiColumn() {
+      return state.mode === "ai-hard" ? hardMove(state.board) : easyMove(state.board);
+    }
+
+    function scheduleAi() {
+      if (!isAiMode() || state.current !== P2 || state.over) return;
+      state.locked = true;
+      refreshHud();
+      const wait = state.mode === "ai-hard" ? 620 : 380;
+      setTimeout(() => {
+        if (state.over || state.current !== P2) return;
+        const col = pickAiColumn();
+        applyDrop(col, P2);
+      }, wait);
+    }
+
+    /* ---------- Turns ---------- */
+    function tryDrop(col) {
+      if (state.locked || state.over || !isHumanTurn()) return;
+      if (state.board[0][col] !== EMPTY) return;
+      applyDrop(col, state.current);
+    }
+
+    function applyDrop(col, player) {
+      const row = dropPiece(state.board, col, player);
+      if (row < 0) {
+        state.locked = false;
+        refreshHud();
+        return;
+      }
+      state.locked = true;
+      state.moves += 1;
+      animateDisc(row, col, player);
+      playDrop(player);
+      refreshHud();
+
+      const win = findWinFrom(state.board, row, col, player);
+      setTimeout(() => {
+        if (win) {
+          finishWin(player, win);
+          return;
+        }
+        if (isDraw(state.board)) {
+          finishDraw();
+          return;
+        }
+        state.current = opponent(player);
+        state.locked = false;
+        describeTurn();
+        scheduleAi();
+      }, 500);
+    }
+
+    function finishWin(player, win) {
+      state.over = true;
+      state.locked = true;
+      if (player === P1) state.scores.y += 1; else state.scores.r += 1;
+      highlightWin(win.cells);
+      playWin();
+      const who = isAiMode()
+        ? (player === P1 ? "우리 반이 이겼습니다!" : "컴퓨터가 이겼습니다")
+        : playerName(player) + " 승리!";
+      const josa = win.direction.endsWith("선") ? "으로" : "로";
+      setStatus("win", who, win.direction + josa + " 네 칸이 이어졌습니다. 빛나는 칸을 함께 확인해 보세요.", "승리");
+      refreshHud();
+    }
+
+    function finishDraw() {
+      state.over = true;
+      state.locked = true;
+      clearPreviews();
+      state.scores.d += 1;
+      playDraw();
+      setStatus("draw", "무승부입니다", "보드가 가득 찼습니다. 새 대결에서 가운데 열을 다시 노려보세요.", "무승부");
+      refreshHud();
+    }
+
+    function newGame(keepScores) {
+      state.board = emptyBoard();
+      state.current = state.starter;
+      state.locked = false;
+      state.over = false;
+      state.moves = 0;
+      if (!keepScores) state.scores = { y: 0, r: 0, d: 0 };
+      paintStatic();
+      describeTurn();
+      if (isAiMode() && state.current === P2) scheduleAi();
+    }
+
+    /* ---------- Controls ---------- */
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.mode = btn.dataset.mode;
+        state.starter = P1;
+        newGame(true);
+      });
+    });
+
+    document.getElementById("btnRestart").addEventListener("click", () => newGame(true));
+    document.getElementById("btnSwapStart").addEventListener("click", () => {
+      state.starter = opponent(state.starter);
+      newGame(true);
+    });
+
+    const helpModal = document.getElementById("helpModal");
+    document.getElementById("btnHelp").addEventListener("click", () => helpModal.classList.add("open"));
+    document.getElementById("btnHelpClose").addEventListener("click", () => helpModal.classList.remove("open"));
+    helpModal.addEventListener("click", (e) => {
+      if (e.target === helpModal) helpModal.classList.remove("open");
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "Escape") helpModal.classList.remove("open");
+      const n = e.code === "Digit1" || e.code === "Numpad1" ? 1
+        : e.code === "Digit2" || e.code === "Numpad2" ? 2
+        : e.code === "Digit3" || e.code === "Numpad3" ? 3
+        : e.code === "Digit4" || e.code === "Numpad4" ? 4
+        : e.code === "Digit5" || e.code === "Numpad5" ? 5
+        : e.code === "Digit6" || e.code === "Numpad6" ? 6
+        : e.code === "Digit7" || e.code === "Numpad7" ? 7
+        : 0;
+      if (n) {
+        e.preventDefault();
+        tryDrop(n - 1);
+      }
+    });
+
+    buildBoard();
+    newGame(false);
+  </script>
+</body>
+</html>

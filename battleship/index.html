@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>해상 함대전 배틀쉽 프로 | 초등 수학 좌표 탐구 & 전략 보드게임</title>
+  <meta name="description" content="초등 6학년 수학 좌표평면과 헌트-타겟 인공지능 알고리즘을 결합한 10×10 실전 해상 전략 보드게임" />
+  <meta property="og:title" content="해상 함대전 배틀쉽 프로 | 손쌤 에듀테크" />
+  <meta property="og:description" content="1P vs 스마트 AI 대전, 2P 로컬 대전(Pass & Play / 1대 기기 즉시대전), 좌표 스피드 훈련" />
+  <meta name="theme-color" content="#0b132b" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --bg: #0b132b;
+      --card-bg: #1c2541;
+      --radar-green: #00ffcc;
+      --radar-cyan: #38bdf8;
+      --p1-blue: #38bdf8;
+      --p2-red: #f43f5e;
+      --hit-red: #ef4444;
+      --miss-blue: #64748b;
+      --ship-hull: #475569;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #3a506b;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: rgba(11, 19, 43, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      font-size: 26px;
+      background: rgba(0, 255, 204, 0.15);
+      border: 1px solid var(--radar-green);
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+    }
+    .brand h1 { font-size: 19px; font-weight: 900; color: var(--radar-green); letter-spacing: -0.01em; }
+    .brand p { font-size: 12px; color: var(--text-muted); }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-radar {
+      background: rgba(0, 255, 204, 0.15);
+      border-color: var(--radar-green);
+      color: var(--radar-green);
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+    }
+    .btn-radar:hover { background: var(--radar-green); color: #0b132b; font-weight: 900; }
+    .btn-ghost { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.18); }
+
+    /* Mode Selector Bar */
+    .mode-bar {
+      background: #111d3d;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .mode-btn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn:hover { border-color: var(--radar-green); color: white; }
+    .mode-btn.active {
+      background: rgba(0, 255, 204, 0.2);
+      border-color: var(--radar-green);
+      color: var(--radar-green);
+      font-weight: 800;
+    }
+
+    /* 2P Live Turn Banner */
+    .turn-banner {
+      display: none;
+      max-width: 1400px;
+      margin: 14px auto 0;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .turn-banner.active { display: block; }
+    .turn-banner-inner {
+      border-radius: var(--radius);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      transition: all 0.3s;
+      border: 2px solid;
+    }
+    .turn-banner-inner.p1-turn {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--p1-blue);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    }
+    .turn-banner-inner.p2-turn {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: var(--p2-red);
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+    }
+    .turn-title-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .turn-tag {
+      padding: 4px 12px;
+      border-radius: 8px;
+      color: #0b132b;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .turn-tag.p1 { background: var(--p1-blue); }
+    .turn-tag.p2 { background: var(--p2-red); color: #fff; }
+
+    /* Speed Quiz Banner */
+    .quiz-banner {
+      display: none;
+      max-width: 1400px;
+      margin: 14px auto 0;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .quiz-banner.active { display: block; }
+    .quiz-banner-inner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.15));
+      border: 2px solid #f59e0b;
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+
+    /* Telemetry Bar (for AI mode) */
+    .telemetry-bar {
+      max-width: 1400px;
+      margin: 14px auto 0;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .telemetry-box {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-item .label { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+    .stat-item .val { font-size: 18px; font-weight: 900; color: var(--radar-green); font-family: monospace; }
+
+    /* Main Board Container */
+    .main-game-area {
+      max-width: 1400px;
+      margin: 16px auto 24px;
+      padding: 0 20px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+    @media (max-width: 960px) {
+      .main-game-area { grid-template-columns: 1fr; }
+    }
+
+    /* Tactical Board Card */
+    .board-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+      transition: all 0.3s;
+    }
+    /* Active Targeting Glow */
+    .board-card.active-target-p1 {
+      border-color: var(--p1-blue) !important;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.4) !important;
+    }
+    .board-card.active-target-p2 {
+      border-color: var(--p2-red) !important;
+      box-shadow: 0 0 25px rgba(244, 63, 94, 0.4) !important;
+    }
+    .board-card.inactive-board {
+      opacity: 0.75;
+    }
+
+    .board-head {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .board-title {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fleet-status-pills {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .ship-pill {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.08);
+      color: #94a3b8;
+      border: 1px solid var(--border);
+    }
+    .ship-pill.sunk {
+      background: rgba(239, 68, 68, 0.25) !important;
+      color: #fca5a5 !important;
+      border-color: var(--hit-red) !important;
+      text-decoration: line-through !important;
+      text-decoration-color: #ef4444 !important;
+      text-decoration-thickness: 1.5px !important;
+    }
+
+    /* 10x10 Grid */
+    .grid-10 {
+      display: grid;
+      grid-template-columns: 32px repeat(10, minmax(28px, 42px));
+      grid-template-rows: 32px repeat(10, minmax(28px, 42px));
+      gap: 3px;
+      background: #0d152a;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      user-select: none;
+    }
+    .grid-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--radar-cyan);
+    }
+    .grid-cell {
+      background: rgba(58, 80, 107, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 900;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .grid-cell:hover:not(.hit):not(.miss) {
+      background: rgba(0, 255, 204, 0.25);
+      border-color: var(--radar-green);
+      transform: scale(1.06);
+      z-index: 2;
+    }
+
+    /* Cell states */
+    .grid-cell.ship-part {
+      background: #475569;
+      border-color: #64748b;
+    }
+    .grid-cell.ship-part::after {
+      content: '⚓';
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    .grid-cell.miss {
+      background: #1e293b;
+      color: #64748b;
+      cursor: default;
+    }
+    .grid-cell.miss::after {
+      content: '•';
+      font-size: 26px;
+      color: #94a3b8;
+    }
+    .grid-cell.hit {
+      background: rgba(239, 68, 68, 0.35);
+      border-color: var(--hit-red);
+      color: #ef4444;
+      cursor: default;
+      animation: hitShake 0.3s ease-out;
+    }
+    .grid-cell.hit::after {
+      content: '💥';
+      font-size: 16px;
+    }
+    .grid-cell.quiz-correct {
+      background: rgba(16, 185, 129, 0.4) !important;
+      border-color: #10b981 !important;
+      animation: hitShake 0.3s ease-out;
+    }
+    .grid-cell.quiz-correct::after {
+      content: '🎯';
+      font-size: 16px;
+    }
+    @keyframes hitShake {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-3px, 2px); }
+      75% { transform: translate(3px, -2px); }
+    }
+
+    /* Board Control Panel */
+    .board-footer {
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .board-hint { font-size: 12px; color: var(--text-muted); }
+
+    /* Math Guide Box */
+    .math-guide-box {
+      display: none;
+      width: 100%;
+      padding: 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+    .math-guide-box.active { display: block; }
+    .math-guide-box h3 { color: var(--radar-cyan); font-size: 15px; margin-bottom: 8px; }
+    .math-guide-box ul { padding-left: 20px; color: #cbd5e1; }
+
+    /* Pass & Play Blind Turn Modal */
+    .turn-cover-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(11, 19, 43, 0.98);
+      backdrop-filter: blur(15px);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 24px;
+      text-align: center;
+    }
+    .turn-cover-modal.open { display: flex; }
+    .turn-cover-card {
+      background: var(--card-bg);
+      border: 2px solid var(--radar-green);
+      border-radius: 20px;
+      padding: 36px 40px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(0, 255, 204, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .turn-cover-card h2 { font-size: 24px; color: var(--radar-green); font-weight: 900; }
+    .turn-cover-card p { color: #cbd5e1; font-size: 14px; line-height: 1.6; }
+
+    /* Sonar Active Button & Cell Scanned Animation */
+    .btn.sonar-active {
+      background: #0284c7 !important;
+      border-color: #38bdf8 !important;
+      color: #fff !important;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.8) !important;
+      animation: pulseSonarBtn 1.2s infinite;
+    }
+    @keyframes pulseSonarBtn {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .grid-cell.sonar-scanned-cell {
+      outline: 2px dashed #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.28) !important;
+      animation: sonarCellPulse 1.2s ease-out;
+    }
+    @keyframes sonarCellPulse {
+      0% { transform: scale(0.92); opacity: 0.3; }
+      50% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.85; }
+    }
+
+    /* Help Modal Backdrop & Card */
+    .help-modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(11, 19, 43, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .help-modal-backdrop.open { display: flex; }
+    .help-modal-card {
+      background: var(--card-bg);
+      border: 2px solid var(--radar-cyan);
+      border-radius: 20px;
+      padding: 26px 30px;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 100%;
+      box-shadow: 0 0 50px rgba(0, 255, 204, 0.2);
+      color: var(--text-light);
+    }
+    .help-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .help-modal-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--radar-cyan);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .help-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 26px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .help-close-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+    .help-section {
+      margin-bottom: 16px;
+    }
+    .help-section h3 {
+      font-size: 15px;
+      color: var(--radar-green);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+    .help-section p, .help-section li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+    .help-section ul {
+      padding-left: 20px;
+      margin-top: 4px;
+    }
+    .help-highlight-box {
+      background: rgba(0, 255, 204, 0.08);
+      border-left: 4px solid var(--radar-cyan);
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin: 8px 0;
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .help-ship-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    .help-ship-table th, .help-ship-table td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .help-ship-table th {
+      background: rgba(0,0,0,0.3);
+      color: var(--radar-cyan);
+    }
+
+    /* Print Worksheet Elements (Hidden on screen) */
+    .print-worksheet-header,
+    .print-worksheet-footer {
+      display: none;
+    }
+
+    /* =========================================================================
+       PRINT STYLES (Strict 1-Page A4 Classroom Worksheet Layout)
+       ========================================================================= */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 5mm 7mm;
+      }
+      *, *::before, *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      html, body {
+        background: #fff !important;
+        color: #000 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11pt !important;
+      }
+      header, nav, #sonssamGlobalNav, .mode-bar, .turn-banner, .quiz-banner, .telemetry-bar, .board-footer, .header-actions, .btn, .turn-cover-modal, .help-modal-backdrop, #mathGuideBox {
+        display: none !important;
+      }
+
+      /* Worksheet Header */
+      .print-worksheet-header {
+        display: block !important;
+        margin-bottom: 3.5mm;
+        border-bottom: 2px solid #000;
+        padding-bottom: 2.5mm;
+      }
+      .print-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2mm;
+      }
+      .print-main-title {
+        font-size: 14pt;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+      }
+      .print-sub-badge {
+        font-size: 8.5pt;
+        font-weight: 700;
+        border: 1px solid #444;
+        padding: 1.5px 7px;
+        border-radius: 4px;
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .print-meta-box {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        font-size: 8.5pt !important;
+        background: #f8fafc !important;
+        border: 1px solid #94a3b8 !important;
+        border-radius: 4px !important;
+        padding: 2.5mm 4mm !important;
+        white-space: nowrap !important;
+      }
+      .meta-item {
+        display: inline-flex !important;
+        align-items: flex-end !important;
+        white-space: nowrap !important;
+        gap: 1px !important;
+      }
+      .meta-lbl {
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        margin-right: 2px !important;
+      }
+      .print-line {
+        display: inline-block !important;
+        border-bottom: 1.2px solid #000 !important;
+        height: 1.1em !important;
+        margin: 0 1px !important;
+        vertical-align: bottom !important;
+      }
+
+      /* Main Game Area: Side-by-side 2 boards strictly fitting in 1 page */
+      .main-game-area {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6mm !important;
+        width: 100% !important;
+        margin: 0 0 3.5mm 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid !important;
+      }
+      .board-card,
+      .board-card.active-target-p1,
+      .board-card.active-target-p2,
+      .board-card.inactive-board {
+        border: 1.5px solid #000 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        border-radius: 6px !important;
+        padding: 3mm 4mm !important;
+        opacity: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2mm !important;
+        page-break-inside: avoid !important;
+      }
+      .board-head {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 1px solid #94a3b8 !important;
+        padding-bottom: 2mm !important;
+      }
+      .board-title {
+        font-size: 11pt !important;
+        font-weight: 900 !important;
+        color: #000 !important;
+      }
+      #boardSub1, #boardSub2 {
+        font-size: 8pt !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+      }
+      .fleet-status-pills {
+        display: none !important;
+      }
+
+      /* Compact 10x10 Grid for Print */
+      .grid-10 {
+        width: 100% !important;
+        max-width: 86mm !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+        grid-template-columns: 20px repeat(10, 1fr) !important;
+        grid-template-rows: 20px repeat(10, 1fr) !important;
+        gap: 0 !important;
+        background: #fff !important;
+        border: 1.5px solid #000 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+      }
+      .grid-label {
+        font-size: 7.5pt !important;
+        font-weight: 800 !important;
+        color: #000 !important;
+        background: #e2e8f0 !important;
+        border: 0.5px solid #94a3b8 !important;
+      }
+      .grid-cell {
+        background: #fff !important;
+        border: 0.5px solid #64748b !important;
+        border-radius: 0 !important;
+        font-size: 8pt !important;
+        color: #000 !important;
+      }
+
+      /* In Blank Worksheet Mode: clear ships and hits/misses for pencil drawing */
+      body.print-blank-mode .grid-cell {
+        background: #fff !important;
+      }
+      body.print-blank-mode .grid-cell::after {
+        display: none !important;
+      }
+
+      /* In normal print (if printing current game state) */
+      body:not(.print-blank-mode) .grid-cell.ship-part {
+        background: #cbd5e1 !important;
+      }
+      body:not(.print-blank-mode) .grid-cell.ship-part::after {
+        content: '■' !important;
+        color: #334155 !important;
+        font-size: 9pt !important;
+      }
+      body:not(.print-blank-mode) .grid-cell.hit {
+        background: #fee2e2 !important;
+      }
+      body:not(.print-blank-mode) .grid-cell.hit::after {
+        content: 'X' !important;
+        color: #dc2626 !important;
+        font-weight: 900 !important;
+        font-size: 10pt !important;
+      }
+      body:not(.print-blank-mode) .grid-cell.miss::after {
+        content: '•' !important;
+        color: #64748b !important;
+        font-size: 12pt !important;
+      }
+
+      /* Printable Worksheet Footer */
+      .print-worksheet-footer {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2mm !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+      }
+      .print-spec-card, .print-rules-card {
+        border: 1px solid #475569 !important;
+        border-radius: 4px !important;
+        padding: 2.5mm 3.5mm !important;
+        background: #f8fafc !important;
+      }
+      .print-card-title {
+        font-size: 8.5pt !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        margin-bottom: 1.5mm !important;
+      }
+      .print-ships-grid {
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 2mm !important;
+        font-size: 7.8pt !important;
+      }
+      .print-ship-pill {
+        background: #fff !important;
+        border: 1px solid #94a3b8 !important;
+        border-radius: 3px !important;
+        padding: 1.2mm 2mm !important;
+        white-space: nowrap !important;
+        flex: 1 !important;
+        text-align: center !important;
+      }
+      .print-rules-text {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1mm !important;
+        font-size: 7.8pt !important;
+        color: #334155 !important;
+        line-height: 1.35 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🚢</div>
+      <div>
+        <h1>해상 함대전 배틀쉽 프로 (Battleship Tactical Naval Pro)</h1>
+        <p>수학 6학년 좌표평면(A~J × 1~10) & 헌트-타겟 알고리즘 실전 전략 시뮬레이션</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-radar" id="btnSonar" title="지정한 3×3 해역에 적 함선이 숨어있는지 음파(소나 핑)로 정찰합니다">
+        <span>📡</span>
+        <span id="sonarBtnText">소나 음파 정찰 (2회)</span>
+      </button>
+      <button class="btn btn-ghost" id="btnGameGuide" title="게임 규칙 및 소나(SONAR) 핑의 과학적 원리 안내">
+        <span>❓ 소나 안내 & 규칙</span>
+      </button>
+      <button class="btn btn-ghost" id="btnPrintSheet" title="A4 1장에 딱 맞는 교실 활동지를 인쇄합니다">
+        <span>🖨️ 활동지 인쇄 (1페이지)</span>
+      </button>
+      <button class="btn btn-radar" id="btnRestart" title="새로운 게임을 시작합니다">
+        <span>⚡ 새로운 함대전 시작</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mode Selector Bar -->
+  <div class="mode-bar">
+    <button class="mode-btn active" data-mode="ai-easy">🤖 사령관 AI (초급 레이더)</button>
+    <button class="mode-btn" data-mode="ai-hard">🧠 전략 제독 AI (헌트 & 타겟)</button>
+    <button class="mode-btn" data-mode="2p">👥 2인 로컬 대결 (1대 기기 즉시대전)</button>
+    <button class="mode-btn" data-mode="speed-quiz">🎯 좌표 스피드 훈련 (수학 연계)</button>
+  </div>
+
+  <!-- 2P Live Turn Banner -->
+  <div class="turn-banner" id="turnBanner">
+    <div class="turn-banner-inner p1-turn" id="turnBannerInner">
+      <div class="turn-title-box">
+        <span class="turn-tag p1" id="turnBadge">P1 차례</span>
+        <span id="turnMainTitle">👉 [플레이어 1]의 사격 차례! 오른쪽 [플레이어 2의 바다]를 클릭하세요!</span>
+      </div>
+      <div style="display: flex; gap: 14px; align-items: center;">
+        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; color: #cbd5e1;">
+          <input type="checkbox" id="chkBlindPass">
+          <span>🔒 턴 넘길 때 화면 가리기 (Pass & Play)</span>
+        </label>
+        <button class="btn btn-ghost" style="padding: 5px 12px; font-size: 12px;" id="btnRerandom2P">🎲 함선 비밀 재배치</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Telemetry Bar (AI Mode) -->
+  <div class="telemetry-bar" id="telemetrySection">
+    <div class="telemetry-box">
+      <div class="stat-item">
+        <span class="label">현재 교전 상태</span>
+        <span class="val" id="turnStatus" style="font-size: 16px;">사령관의 사격 턴!</span>
+      </div>
+      <div class="stat-item">
+        <span class="label">총 발사 포격</span>
+        <span class="val" id="statShots">0회</span>
+      </div>
+      <div class="stat-item">
+        <span class="label">명중률 (Accuracy)</span>
+        <span class="val" id="statAccuracy">0.0%</span>
+      </div>
+      <div class="stat-item">
+        <span class="label">격침된 적 함선</span>
+        <span class="val" id="statSunkCount" style="color: #ef4444;">0 / 5척</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speed Quiz Banner -->
+  <div class="quiz-banner" id="quizBanner">
+    <div class="quiz-banner-inner">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 20px;">🎯</span>
+        <span style="font-size: 16px; font-weight: 700; color: #fde68a;">긴급 타격 좌표:</span>
+        <strong id="quizTargetText" style="font-size: 32px; color: #fff; background: rgba(0,0,0,0.35); padding: 4px 16px; border-radius: 8px;">D 7</strong>
+        <span style="font-size: 14px; color: #fde68a;" id="quizKoreanHint">(D행 7열)</span>
+      </div>
+      <div style="display: flex; gap: 20px; align-items: center;">
+        <div class="stat-item">
+          <span class="label" style="color: #fde68a;">남은 시간</span>
+          <span class="val" id="quizTimerVal" style="color: #fff; font-size: 22px;">30초</span>
+        </div>
+        <div class="stat-item">
+          <span class="label" style="color: #fde68a;">점수</span>
+          <span class="val" id="quizScoreVal" style="color: #fbbf24; font-size: 22px;">0점</span>
+        </div>
+        <div class="stat-item">
+          <span class="label" style="color: #fde68a;">연속 콤보</span>
+          <span class="val" id="quizComboVal" style="color: #38bdf8; font-size: 22px;">0 COMBO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Worksheet Header (Only visible in Print) -->
+  <div class="print-worksheet-header">
+    <div class="print-title-row">
+      <div class="print-main-title">🚢 [수학 연계 활동지] 해상 함대전 작전 기록표</div>
+      <div class="print-sub-badge">초등 6학년 수학 · 좌표평면과 순서쌍 탐구</div>
+    </div>
+    <div class="print-meta-box">
+      <div class="meta-item"><span class="meta-lbl">학급:</span><span class="print-line" style="width: 24px;"></span>학년 <span class="print-line" style="width: 24px;"></span>반</div>
+      <div class="meta-item"><span class="meta-lbl">번호:</span><span class="print-line" style="width: 28px;"></span>번</div>
+      <div class="meta-item"><span class="meta-lbl">작전관(이름):</span><span class="print-line" style="width: 72px;"></span></div>
+      <div class="meta-item"><span class="meta-lbl">상대 작전관:</span><span class="print-line" style="width: 72px;"></span></div>
+      <div class="meta-item"><span class="meta-lbl">일시:</span>202<span class="print-line" style="width: 14px;"></span>년 <span class="print-line" style="width: 16px;"></span>월 <span class="print-line" style="width: 16px;"></span>일</div>
+    </div>
+  </div>
+
+  <!-- Main Game Stage -->
+  <main class="main-game-area">
+    <!-- Left Board (Board 1: Player 1 / My Base) -->
+    <section class="board-card" id="boardCard1">
+      <div class="board-head">
+        <div class="board-title">
+          <span id="boardTitle1">🛡️ 내 아군 함대 기지</span>
+          <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;" id="boardSub1">(내 배의 위치)</span>
+        </div>
+        <div class="fleet-status-pills" id="fleetPills1">
+          <span class="ship-pill" id="b1-carrier">항모(5)</span>
+          <span class="ship-pill" id="b1-battle">전함(4)</span>
+          <span class="ship-pill" id="b1-cruiser">순양(3)</span>
+          <span class="ship-pill" id="b1-sub">잠수(3)</span>
+          <span class="ship-pill" id="b1-destroyer">초계(2)</span>
+        </div>
+      </div>
+
+      <div class="grid-10" id="grid1"></div>
+
+      <!-- Math Guide Box for Quiz Mode -->
+      <div class="math-guide-box" id="mathGuideBox">
+        <h3>📐 6학년 수학 좌표평면(순서쌍) 탐구 팁</h3>
+        <ul>
+          <li><strong>가로 번호 (열, Column)</strong>: 1부터 10까지 가로 위치를 나타냅니다.</li>
+          <li><strong>세로 기호 (행, Row)</strong>: A부터 J까지 세로 위치를 나타냅니다.</li>
+          <li><strong>교실 팁</strong>: 짝과 마주보고 플레이할 때 "C행 4열 발사!"처럼 정확한 좌표를 소리 내어 말하며 수학적 의사소통 능력을 기릅니다.</li>
+        </ul>
+      </div>
+
+      <div class="board-footer" id="boardFooter1">
+        <div class="board-hint" id="boardHint1">내 함선이 배치된 해역입니다.</div>
+        <button class="btn btn-radar" id="btnRandomDeploy1" style="font-size: 12px; padding: 6px 12px;">⚡ 내 함선 재배치</button>
+      </div>
+    </section>
+
+    <!-- Right Board (Board 2: Player 2 / Enemy Radar) -->
+    <section class="board-card" id="boardCard2">
+      <div class="board-head">
+        <div class="board-title">
+          <span id="boardTitle2">🎯 적 함대 사격 레이더</span>
+          <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;" id="boardSub2">(타격할 좌표 클릭)</span>
+        </div>
+        <div class="fleet-status-pills" id="fleetPills2">
+          <span class="ship-pill" id="b2-carrier">항모(5)</span>
+          <span class="ship-pill" id="b2-battle">전함(4)</span>
+          <span class="ship-pill" id="b2-cruiser">순양(3)</span>
+          <span class="ship-pill" id="b2-sub">잠수(3)</span>
+          <span class="ship-pill" id="b2-destroyer">초계(2)</span>
+        </div>
+      </div>
+
+      <div class="grid-10" id="grid2"></div>
+
+      <div class="board-footer">
+        <div class="board-hint" id="boardHint2">적 레이더를 주시하고 타격할 좌표를 지정하십시오.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Printable Worksheet Footer (Only visible in Print) -->
+  <div class="print-worksheet-footer">
+    <div class="print-spec-card">
+      <div class="print-card-title">⚓ 함선 5종 규격 및 침몰 체크리스트 (각 1척씩 총 5척 배치)</div>
+      <div class="print-ships-grid">
+        <div class="print-ship-pill"><b>항공모함</b>(5칸) [ ][ ][ ][ ][ ] □격침</div>
+        <div class="print-ship-pill"><b>전함</b>(4칸) [ ][ ][ ][ ] □격침</div>
+        <div class="print-ship-pill"><b>순양함</b>(3칸) [ ][ ][ ] □격침</div>
+        <div class="print-ship-pill"><b>잠수함</b>(3칸) [ ][ ][ ] □격침</div>
+        <div class="print-ship-pill"><b>초계정</b>(2칸) [ ][ ] □격침</div>
+      </div>
+    </div>
+    <div class="print-rules-card">
+      <div class="print-card-title">📐 작전 수칙 & 수학 탐구 규칙</div>
+      <div class="print-rules-text">
+        <span>① <b>함선 배치</b>: 가로 또는 세로 직선으로만 연속 배치하며, 대각선이나 겹쳐 배치는 불가능합니다.</span>
+        <span>② <b>좌표 발성</b>: 포격 시 정확한 6학년 수학 순서쌍 좌표를 큰 소리로 말합니다. (예: <em>"B행 7열 포격!"</em>)</span>
+        <span>③ <b>정직 응답</b>: 상대방의 공격 좌표를 듣고 자신의 기지를 확인한 뒤 "명중(O)", "빗나감(X)", "격침!"을 정직하게 답합니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pass & Play Blind Modal -->
+  <div class="turn-cover-modal" id="turnModal">
+    <div class="turn-cover-card">
+      <div style="font-size: 56px;" id="turnModalIcon">🔒</div>
+      <h2 id="turnModalTitle">화면을 넘겨주세요</h2>
+      <p id="turnModalDesc">상대방이 보지 못하도록 기기를 넘겨준 뒤 아래 버튼을 누르세요.</p>
+      <button class="btn btn-radar" style="padding: 14px 28px; font-size: 16px;" id="btnReadyTurn">
+        작전 화면 확인 및 포격
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Guide & Sonar Info Modal -->
+  <div class="help-modal-backdrop" id="helpModal">
+    <div class="help-modal-card">
+      <div class="help-modal-head">
+        <div class="help-modal-title">
+          <span>🚢</span>
+          <span>해상 함대전 작전 지침서 & 소나(SONAR) 안내</span>
+        </div>
+        <button class="help-close-btn" id="btnHelpClose" title="닫기">&times;</button>
+      </div>
+
+      <div class="help-section">
+        <h3>📡 1. '소나(SONAR)'와 '소나 핑(Sonar Ping)'이란?</h3>
+        <p><strong>소나(SONAR)</strong>는 <em>Sound Navigation And Ranging</em>의 약자로, 잠수함과 군함이 물속에서 사용하는 <strong>'음파 탐지기'</strong>입니다.</p>
+        <div class="help-highlight-box">
+          💡 <strong>왜 레이더 대신 소나를 쓸까요?</strong><br>
+          바닷속 깊은 곳에서는 빛이나 레이더 전파가 몇 미터도 나가지 못하고 물에 흡수됩니다. 반면 소리(음파)는 물속에서 공기보다 4배나 빠르고 멀리 전달되기 때문에, 바다에서는 소리를 쏘아 적을 찾습니다!
+        </div>
+        <p><strong>소나 핑(Sonar Ping)</strong>은 바닷속으로 발사하는 <em>"삐---익!"</em> 하는 고주파 음파 펄스 신호입니다. 이 음파가 적 군함에 부딪혀 되돌아오는 반사파를 분석하여 숨겨진 적의 위치를 파악합니다.</p>
+        <p><strong>🎯 게임 속 기능 (소나 음파 정찰):</strong> 상단의 <code>[ 📡 소나 음파 정찰 ]</code> 버튼을 켠 후, 적 레이더에서 의심스러운 좌표를 클릭하세요! <strong>그 좌표를 중심으로 3×3 해역(총 9칸) 안에 적 배가 숨어있는지 음파로 정찰</strong>해 줍니다. (전투당 2회 제공, 턴을 소모하지 않습니다)</p>
+      </div>
+
+      <div class="help-section">
+        <h3>📐 2. 배틀쉽 게임 규칙과 6학년 수학 좌표 연계</h3>
+        <p>A부터 J까지의 <strong>세로 기호(행, Row)</strong>와 1부터 10까지의 <strong>가로 번호(열, Column)</strong>를 조합하여 상대방이 숨겨둔 5척의 함선을 먼저 격침시키는 턴제 전략 게임입니다.</p>
+        <ul>
+          <li><strong>수학적 의사소통</strong>: 짝과 대결할 때 <em>"C행 4열 포격!"</em>처럼 좌표(순서쌍)를 소리 내어 말하며 의사소통 역량을 기릅니다.</li>
+          <li><strong>헌트 & 타겟 전략</strong>: 바다를 넓게 탐색하다가(Hunt), 배의 일부분이 명중하면 인접한 상하좌우를 집중 타격하여(Target) 격침합니다.</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h3>⚓ 3. 아군 및 적군 함선 5종 규격</h3>
+        <table class="help-ship-table">
+          <thead>
+            <tr><th>함선 종류</th><th>크기(칸 수)</th><th>특징</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>항공모함 (Carrier)</td><td>5칸</td><td>함대의 기함, 가장 거대하여 맞히기 쉬움</td></tr>
+            <tr><td>전함 (Battleship)</td><td>4칸</td><td>강력한 화력의 주력 전투함</td></tr>
+            <tr><td>순양함 (Cruiser)</td><td>3칸</td><td>기동성이 뛰어난 호위함</td></tr>
+            <tr><td>잠수함 (Submarine)</td><td>3칸</td><td>소나 음파로 탐지되는 해저 스텔스함</td></tr>
+            <tr><td>초계정 (Destroyer)</td><td>2칸</td><td>가장 작아 마지막까지 찾기 어려운 고속정</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="help-section">
+        <h3>🖨️ 4. 1페이지 교실 활동지 인쇄 활용 팁</h3>
+        <p>상단 <code>[ 🖨️ 활동지 인쇄 (1페이지) ]</code> 버튼을 누르면 <strong>A4 딱 1장에 맞는 교실 대결 활동지</strong>가 인쇄됩니다. 컴퓨터가 없는 교실에서도 두 학생이 마주 앉아 연필로 직접 배를 그리고 좌표를 부르며 즐길 수 있습니다.</p>
+      </div>
+
+      <div style="text-align: right; margin-top: 10px;">
+        <button class="btn btn-radar" id="btnHelpConfirm" style="padding: 10px 24px;">작전 확인 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       AUDIO SYNTHESIZER
+       ========================================================================= */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSonarPing() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playArtilleryShot() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.45);
+    }
+
+    function playWaterSplash() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(450, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function playExplosionHit() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const bufferSize = audioCtx.sampleRate * 0.4;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(450, audioCtx.currentTime);
+      filter.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.35);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    function playShipSunkSiren() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(700, audioCtx.currentTime + 0.2);
+      osc.frequency.linearRampToValueAtTime(350, audioCtx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.55);
+    }
+
+    function playVictoryFanfare() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const notes = [261.63, 329.63, 392.00, 523.25];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.45);
+      });
+    }
+
+    /* =========================================================================
+       FLEET SPECIFICATIONS & STATE
+       ========================================================================= */
+    const ROWS = ['A','B','C','D','E','F','G','H','I','J'];
+    const SHIPS_SPEC = [
+      { id: 'carrier', name: '항공모함', size: 5 },
+      { id: 'battle', name: '전함', size: 4 },
+      { id: 'cruiser', name: '순양함', size: 3 },
+      { id: 'sub', name: '잠수함', size: 3 },
+      { id: 'destroyer', name: '초계정', size: 2 }
+    ];
+
+    const state = {
+      mode: 'ai-easy', // 'ai-easy', 'ai-hard', '2p', 'speed-quiz'
+      gameOver: false,
+      shotsFired: 0,
+      shotsHit: 0,
+
+      // Board 1 Data (Player 1)
+      b1Grid: {}, // key -> { ship: id, hit: bool, miss: bool }
+      b1Ships: [],
+
+      // Board 2 Data (Player 2 or AI)
+      b2Grid: {},
+      b2Ships: [],
+
+      // 2P Turn Controller
+      turn2P: 'p1', // 'p1' (attacks Board 2) | 'p2' (attacks Board 1)
+      aiHuntStack: [],
+
+      // Sonar Recon Feature (2 charges per player)
+      sonarChargesP1: 2,
+      sonarChargesP2: 2,
+      isSonarActive: false,
+
+      // Speed Quiz
+      quizInterval: null,
+      quizTimeLeft: 30,
+      quizTargetCoord: '',
+      quizScore: 0,
+      quizCombo: 0,
+      quizHits: 0,
+      quizTotalAttempts: 0,
+
+      modalCallback: null
+    };
+
+    /* =========================================================================
+       INITIALIZATION
+       ========================================================================= */
+    function init() {
+      buildGrid('grid1');
+      buildGrid('grid2');
+      bindEvents();
+      startNewGame();
+    }
+
+    function buildGrid(containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      container.appendChild(makeLabel(''));
+      for (let c = 1; c <= 10; c++) container.appendChild(makeLabel(c));
+
+      ROWS.forEach(r => {
+        container.appendChild(makeLabel(r));
+        for (let c = 1; c <= 10; c++) {
+          const key = `${r}${c}`;
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          cell.dataset.key = key;
+          cell.dataset.grid = containerId;
+          cell.addEventListener('click', () => handleCellClick(containerId, key));
+          container.appendChild(cell);
+        }
+      });
+    }
+
+    function makeLabel(txt) {
+      const div = document.createElement('div');
+      div.className = 'grid-label';
+      div.textContent = txt;
+      return div;
+    }
+
+    function bindEvents() {
+      // Mode selector
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.mode = btn.dataset.mode;
+          startNewGame();
+        });
+      });
+
+      // Header actions
+      document.getElementById('btnSonar').addEventListener('click', toggleSonarRecon);
+      document.getElementById('btnGameGuide').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.add('open');
+      });
+      document.getElementById('btnHelpClose').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.remove('open');
+      });
+      document.getElementById('btnHelpConfirm').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.remove('open');
+      });
+      document.getElementById('helpModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('helpModal')) {
+          document.getElementById('helpModal').classList.remove('open');
+        }
+      });
+      document.getElementById('btnPrintSheet').addEventListener('click', handlePrintSheet);
+      document.getElementById('btnRestart').addEventListener('click', startNewGame);
+
+      // Re-randomize in 2P mode
+      document.getElementById('btnRerandom2P').addEventListener('click', () => {
+        if (state.mode === '2p') {
+          startNewGame();
+        }
+      });
+
+      // Re-randomize Board 1 in 1P mode
+      document.getElementById('btnRandomDeploy1').addEventListener('click', () => {
+        if (state.mode.startsWith('ai')) {
+          state.b1Grid = {};
+          randomDeploy('b1Grid', 'b1Ships');
+          renderBoard1ShipsAI();
+          playSonarPing();
+        }
+      });
+
+      // Blind turn modal ready button
+      document.getElementById('btnReadyTurn').addEventListener('click', () => {
+        document.getElementById('turnModal').classList.remove('open');
+        if (state.modalCallback) {
+          const cb = state.modalCallback;
+          state.modalCallback = null;
+          cb();
+        }
+      });
+    }
+
+    /* =========================================================================
+       NEW GAME CONTROLLER
+       ========================================================================= */
+    function startNewGame() {
+      if (state.quizInterval) {
+        clearInterval(state.quizInterval);
+        state.quizInterval = null;
+      }
+
+      state.gameOver = false;
+      state.shotsFired = 0;
+      state.shotsHit = 0;
+      state.aiHuntStack = [];
+      state.turn2P = 'p1';
+      state.sonarChargesP1 = 2;
+      state.sonarChargesP2 = 2;
+      state.isSonarActive = false;
+      updateSonarUI();
+
+      // Clear UI cells
+      document.querySelectorAll('.grid-cell').forEach(c => {
+        c.className = 'grid-cell';
+      });
+      document.querySelectorAll('.ship-pill').forEach(p => p.classList.remove('sunk'));
+
+      const is2P = state.mode === '2p';
+      const isQuiz = state.mode === 'speed-quiz';
+
+      document.getElementById('turnBanner').classList.toggle('active', is2P);
+      document.getElementById('quizBanner').classList.toggle('active', isQuiz);
+      document.getElementById('telemetrySection').style.display = (is2P || isQuiz) ? 'none' : 'block';
+      document.getElementById('mathGuideBox').classList.toggle('active', isQuiz);
+      document.getElementById('grid1').style.display = isQuiz ? 'none' : 'grid';
+      document.getElementById('btnRandomDeploy1').style.display = is2P ? 'none' : 'inline-flex';
+
+      // Generate fleets
+      state.b1Grid = {};
+      state.b2Grid = {};
+      randomDeploy('b1Grid', 'b1Ships');
+      randomDeploy('b2Grid', 'b2Ships');
+
+      if (isQuiz) {
+        startSpeedQuiz();
+        return;
+      }
+
+      if (is2P) {
+        setup2PGame();
+        return;
+      }
+
+      setupAIGame();
+    }
+
+    /* =========================================================================
+       FLEET GENERATOR
+       ========================================================================= */
+    function randomDeploy(gridKey, shipsKey) {
+      const grid = state[gridKey];
+      const ships = [];
+
+      SHIPS_SPEC.forEach(spec => {
+        let placed = false;
+        while (!placed) {
+          const isHoriz = Math.random() > 0.5;
+          const rIdx = Math.floor(Math.random() * (isHoriz ? 10 : (10 - spec.size + 1)));
+          const cIdx = Math.floor(Math.random() * (isHoriz ? (10 - spec.size + 1) : 10)) + 1;
+
+          const coordinates = [];
+          for (let i = 0; i < spec.size; i++) {
+            const rowChar = ROWS[isHoriz ? rIdx : (rIdx + i)];
+            const colNum = isHoriz ? (cIdx + i) : cIdx;
+            coordinates.push(`${rowChar}${colNum}`);
+          }
+
+          const overlap = coordinates.some(c => grid[c]);
+          if (!overlap) {
+            coordinates.forEach(c => {
+              grid[c] = { ship: spec.id, hit: false };
+            });
+            ships.push({ id: spec.id, size: spec.size, coords: coordinates, sunk: false });
+            placed = true;
+          }
+        }
+      });
+
+      state[shipsKey] = ships;
+    }
+
+    /* =========================================================================
+       1P vs AI MODE SETUP
+       ========================================================================= */
+    function setupAIGame() {
+      document.getElementById('boardTitle1').textContent = '🛡️ 내 아군 함대 기지';
+      document.getElementById('boardSub1').textContent = '(내 배의 위치)';
+      document.getElementById('boardTitle2').textContent = '🎯 적 함대 사격 레이더';
+      document.getElementById('boardSub2').textContent = '(타격할 좌표 클릭)';
+      document.getElementById('boardHint1').textContent = '내 함선이 배치된 해역입니다.';
+      document.getElementById('boardHint2').textContent = '적 레이더를 주시하고 타격할 좌표를 지정하십시오.';
+      document.getElementById('turnStatus').textContent = '사령관의 사격 턴!';
+
+      document.getElementById('boardCard1').className = 'board-card';
+      document.getElementById('boardCard2').className = 'board-card active-target-p1';
+
+      renderBoard1ShipsAI();
+      updateTelemetry();
+      updateSonarUI();
+      playSonarPing();
+    }
+
+    function renderBoard1ShipsAI() {
+      document.querySelectorAll('#grid1 .grid-cell').forEach(c => c.className = 'grid-cell');
+      Object.keys(state.b1Grid).forEach(coord => {
+        const cell = document.querySelector(`#grid1 .grid-cell[data-key="${coord}"]`);
+        if (cell && !state.b1Grid[coord].hit) {
+          cell.classList.add('ship-part');
+        }
+      });
+    }
+
+    /* =========================================================================
+       2P INSTANT DUAL BATTLE SETUP & CONTROLLER
+       ========================================================================= */
+    function setup2PGame() {
+      state.turn2P = 'p1';
+
+      document.getElementById('boardTitle1').textContent = '🔵 플레이어 1 진영';
+      document.getElementById('boardSub1').textContent = '(P1의 바다)';
+      document.getElementById('boardTitle2').textContent = '🔴 플레이어 2 진영';
+      document.getElementById('boardSub2').textContent = '(P2의 바다)';
+
+      update2PTurnVisuals();
+      playSonarPing();
+    }
+
+    function update2PTurnVisuals() {
+      state.isSonarActive = false;
+      updateSonarUI();
+
+      const isP1 = state.turn2P === 'p1';
+      const inner = document.getElementById('turnBannerInner');
+      const badge = document.getElementById('turnBadge');
+      const title = document.getElementById('turnMainTitle');
+      const card1 = document.getElementById('boardCard1');
+      const card2 = document.getElementById('boardCard2');
+
+      if (isP1) {
+        inner.className = 'turn-banner-inner p1-turn';
+        badge.className = 'turn-tag p1';
+        badge.textContent = 'P1 차례';
+        title.innerHTML = `👉 <strong>[플레이어 1]</strong>의 사격 차례! 오른쪽 <strong>[플레이어 2 바다]</strong>를 클릭해 포격하세요!`;
+
+        card1.className = 'board-card inactive-board';
+        card2.className = 'board-card active-target-p1';
+
+        document.getElementById('boardHint1').textContent = '플레이어 1의 기지 (대기 중)';
+        document.getElementById('boardHint2').innerHTML = `🎯 <strong>[P1 조준 중]</strong> 타격할 P2의 좌표를 클릭하세요!`;
+      } else {
+        inner.className = 'turn-banner-inner p2-turn';
+        badge.className = 'turn-tag p2';
+        badge.textContent = 'P2 차례';
+        title.innerHTML = `👉 <strong>[플레이어 2]</strong>의 사격 차례! 왼쪽 <strong>[플레이어 1 바다]</strong>를 클릭해 포격하세요!`;
+
+        card1.className = 'board-card active-target-p2';
+        card2.className = 'board-card inactive-board';
+
+        document.getElementById('boardHint1').innerHTML = `🎯 <strong>[P2 조준 중]</strong> 타격할 P1의 좌표를 클릭하세요!`;
+        document.getElementById('boardHint2').textContent = '플레이어 2의 기지 (대기 중)';
+      }
+    }
+
+    /* =========================================================================
+       SONAR ACOUSTIC RECON CONTROLLER (소나 음파 정찰)
+       ========================================================================= */
+    function getActiveSonarCharges() {
+      if (state.mode === '2p') {
+        return state.turn2P === 'p1' ? state.sonarChargesP1 : state.sonarChargesP2;
+      }
+      return state.sonarChargesP1;
+    }
+
+    function decrementSonarCharges() {
+      if (state.mode === '2p') {
+        if (state.turn2P === 'p1') state.sonarChargesP1--;
+        else state.sonarChargesP2--;
+      } else {
+        state.sonarChargesP1--;
+      }
+    }
+
+    function toggleSonarRecon() {
+      if (state.gameOver) return;
+      if (state.mode === 'speed-quiz') {
+        alert('⚠️ 좌표 스피드 훈련 모드에서는 소나를 사용할 수 없습니다.');
+        return;
+      }
+
+      const charges = getActiveSonarCharges();
+      if (charges <= 0) {
+        alert('⚠️ 소나 음파 정찰을 모두 사용했습니다! (함대전당 최대 2회 지원)');
+        return;
+      }
+
+      state.isSonarActive = !state.isSonarActive;
+      updateSonarUI();
+
+      if (state.isSonarActive) {
+        playSonarPing();
+        const hintEl = (state.mode === '2p' && state.turn2P === 'p2')
+          ? document.getElementById('boardHint1')
+          : document.getElementById('boardHint2');
+        if (hintEl) {
+          hintEl.innerHTML = `📡 <strong>[소나 정찰 대기]</strong> 정찰할 3×3 해역의 중심 좌표를 클릭하세요! (소나 핑 발사)`;
+        }
+      }
+    }
+
+    function updateSonarUI() {
+      const btn = document.getElementById('btnSonar');
+      const text = document.getElementById('sonarBtnText');
+      if (!btn || !text) return;
+
+      const charges = getActiveSonarCharges();
+      btn.classList.toggle('sonar-active', state.isSonarActive);
+
+      if (state.isSonarActive) {
+        text.textContent = `📡 정찰 좌표 클릭 대기... (${charges}회 남음)`;
+      } else {
+        text.textContent = charges > 0 ? `소나 음파 정찰 (${charges}회)` : `소나 소진 (0회)`;
+      }
+    }
+
+    function handleSonarClick(gridId, key) {
+      if (state.mode === '2p') {
+        const isP1 = state.turn2P === 'p1';
+        if (isP1 && gridId !== 'grid2') {
+          alert('⚠️ [P1 소나 정찰] 오른쪽 [플레이어 2의 바다]를 클릭해 정찰하세요!');
+          return;
+        }
+        if (!isP1 && gridId !== 'grid1') {
+          alert('⚠️ [P2 소나 정찰] 왼쪽 [플레이어 1의 바다]를 클릭해 정찰하세요!');
+          return;
+        }
+      } else {
+        if (gridId !== 'grid2') {
+          alert('⚠️ 아군 기지가 아닌 오른쪽 [적 함대 레이더]를 클릭해 소나를 발사하세요!');
+          return;
+        }
+      }
+
+      executeSonarRecon(gridId, key);
+    }
+
+    function executeSonarRecon(gridId, centerKey) {
+      decrementSonarCharges();
+      state.isSonarActive = false;
+      updateSonarUI();
+      playSonarPing();
+
+      const rChar = centerKey[0];
+      const colNum = parseInt(centerKey.slice(1));
+      const rIdx = ROWS.indexOf(rChar);
+
+      // Collect 3x3 surrounding coordinates
+      const scannedCoords = [];
+      for (let ro = -1; ro <= 1; ro++) {
+        for (let co = -1; co <= 1; co++) {
+          const currRIdx = rIdx + ro;
+          const currCol = colNum + co;
+          if (currRIdx >= 0 && currRIdx < 10 && currCol >= 1 && currCol <= 10) {
+            scannedCoords.push(`${ROWS[currRIdx]}${currCol}`);
+          }
+        }
+      }
+
+      // Visual acoustic ripple pulse on scanned cells
+      scannedCoords.forEach(cKey => {
+        const cell = document.querySelector(`#${gridId} .grid-cell[data-key="${cKey}"]`);
+        if (cell) {
+          cell.classList.add('sonar-scanned-cell');
+          setTimeout(() => cell.classList.remove('sonar-scanned-cell'), 1600);
+        }
+      });
+
+      // Check whether enemy ship exists in these coordinates
+      const isP1 = state.mode === '2p' ? (state.turn2P === 'p1') : true;
+      const targetGrid = isP1 ? state.b2Grid : state.b1Grid;
+      let detectedShipParts = 0;
+      scannedCoords.forEach(cKey => {
+        const t = targetGrid[cKey];
+        if (t && t.ship && !t.hit) {
+          detectedShipParts++;
+        }
+      });
+
+      const hintEl = document.getElementById(gridId === 'grid1' ? 'boardHint1' : 'boardHint2');
+      const activeName = (state.mode === '2p' && !isP1) ? '플레이어 2' : (state.mode === '2p' ? '플레이어 1' : '사령관');
+
+      if (detectedShipParts > 0) {
+        setTimeout(playExplosionHit, 300);
+        if (hintEl) hintEl.innerHTML = `📡 <strong style="color:#38bdf8;">[소나 탐지!]</strong> ${centerKey} 주변 3×3 해역 내 <strong>적 함선 음파 감지 (${detectedShipParts}칸)</strong>!`;
+        alert(`📡 [소나 음파 정찰 결과]\n\n${activeName}의 소나 핑이 적 군함의 선체에 반사되었습니다!\n\n• 탐색 중심: [${centerKey}] 3×3 구역 (${scannedCoords.length}칸)\n• 음파 반사 결과: 적 함선 신호 포착! 🎯\n• 상태: 미타격 선체 ${detectedShipParts}칸 위치 확인`);
+      } else {
+        playWaterSplash();
+        if (hintEl) hintEl.innerHTML = `🌊 <strong>[소나 정찰]</strong> ${centerKey} 주변 3×3 해역은 조용합니다. (적 신호 없음)`;
+        alert(`🌊 [소나 음파 정찰 결과]\n\n바닷속이 고요합니다. 음파가 메아리 없이 통과했습니다.\n\n• 탐색 중심: [${centerKey}] 3×3 구역 (${scannedCoords.length}칸)\n• 음파 반사 결과: 적 함선 미탐지 (안전 해역) 🌊`);
+      }
+    }
+
+    /* =========================================================================
+       PRINT WORKSHEET CONTROLLER (Strict 1-Page A4 Sheet)
+       ========================================================================= */
+    function handlePrintSheet() {
+      const isBlank = confirm(
+        "🖨️ [해상 함대전] 교실 대결 활동지 인쇄\n\n" +
+        "학생들이 직접 연필로 배를 배치하고 대결할 수 있도록 [빈 활동지]로 인쇄하시겠습니까?\n\n" +
+        "• [확인] : 깨끗한 빈 격자 활동지 인쇄 (수업용 학생 활동지 권장 - A4 딱 1장)\n" +
+        "• [취소] : 현재 화면에 표시된 포격 상태 그대로 인쇄"
+      );
+
+      if (isBlank) {
+        document.body.classList.add('print-blank-mode');
+      } else {
+        document.body.classList.remove('print-blank-mode');
+      }
+
+      const sub2 = document.getElementById('boardSub2');
+      const prevSub2 = sub2 ? sub2.textContent : '';
+      if (sub2) sub2.textContent = '(상대 배 포격 기록)';
+
+      window.print();
+
+      setTimeout(() => {
+        if (sub2) sub2.textContent = prevSub2;
+        document.body.classList.remove('print-blank-mode');
+      }, 500);
+    }
+
+    /* =========================================================================
+       CLICK ROUTER
+       ========================================================================= */
+    function handleCellClick(gridId, key) {
+      if (state.gameOver) return;
+
+      // Sonar Recon Intercept
+      if (state.isSonarActive) {
+        handleSonarClick(gridId, key);
+        return;
+      }
+
+      // Speed Quiz
+      if (state.mode === 'speed-quiz') {
+        if (gridId === 'grid2') handleSpeedQuizClick(key);
+        return;
+      }
+
+      // 2P Dual Battle
+      if (state.mode === '2p') {
+        handle2PClick(gridId, key);
+        return;
+      }
+
+      // 1P vs AI
+      if (gridId === 'grid2') {
+        handleAIClick(key);
+      }
+    }
+
+    /* =========================================================================
+       2P BATTLE LOGIC
+       ========================================================================= */
+    function handle2PClick(gridId, key) {
+      const isP1 = state.turn2P === 'p1';
+
+      // P1 attacks grid2 (P2's ocean). P2 attacks grid1 (P1's ocean).
+      if (isP1 && gridId !== 'grid2') {
+        alert('⚠️ 지금은 [플레이어 1]의 차례입니다! 오른쪽 [플레이어 2 바다]를 클릭해 공격하세요!');
+        return;
+      }
+      if (!isP1 && gridId !== 'grid1') {
+        alert('⚠️ 지금은 [플레이어 2]의 차례입니다! 왼쪽 [플레이어 1 바다]를 클릭해 공격하세요!');
+        return;
+      }
+
+      const targetGrid = isP1 ? state.b2Grid : state.b1Grid;
+      const oppShips = isP1 ? state.b2Ships : state.b1Ships;
+      const oppPillsPrefix = isP1 ? 'b2-' : 'b1-';
+      const activeName = isP1 ? '플레이어 1' : '플레이어 2';
+      const oppName = isP1 ? '플레이어 2' : '플레이어 1';
+
+      const cell = document.querySelector(`#${gridId} .grid-cell[data-key="${key}"]`);
+      if (cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+
+      playArtilleryShot();
+
+      const target = targetGrid[key];
+      if (target && target.ship) {
+        // HIT!
+        target.hit = true;
+        cell.classList.add('hit');
+        playExplosionHit();
+
+        // Sunk check
+        const ship = oppShips.find(s => s.id === target.ship);
+        if (ship && !ship.sunk) {
+          const allSunk = ship.coords.every(c => targetGrid[c] && targetGrid[c].hit);
+          if (allSunk) {
+            ship.sunk = true;
+            playShipSunkSiren();
+            const pill = document.getElementById(`${oppPillsPrefix}${ship.id}`);
+            if (pill) pill.classList.add('sunk');
+
+            const spec = SHIPS_SPEC.find(s => s.id === ship.id);
+            alert(`🚨 [격침 경보!] ${activeName}이(가) ${oppName}의 ${spec.name}(${spec.size}칸)을 격침했습니다!`);
+          }
+        }
+      } else {
+        // MISS
+        cell.classList.add('miss');
+        playWaterSplash();
+      }
+
+      // Check Winner
+      const allOppSunk = oppShips.every(s => s.sunk);
+      if (allOppSunk) {
+        state.gameOver = true;
+        playVictoryFanfare();
+        alert(`🏆 [전투 종료!] ${activeName} 대승리!\n${oppName}의 모든 함대를 침몰시키고 바다의 제왕이 되었습니다!`);
+        return;
+      }
+
+      // Advance Turn
+      const nextTurn = isP1 ? 'p2' : 'p1';
+      const blindMode = document.getElementById('chkBlindPass').checked;
+
+      if (blindMode) {
+        showTurnModal({
+          icon: '🔒',
+          title: `${activeName} 사격 완료!`,
+          desc: `포격 결과를 확인했습니다. 이제 기기를 [${oppName}]에게 넘겨주세요. 상대방이 화면을 보지 않을 때 아래 버튼을 누르세요.`,
+          btnText: `${oppName} 작전 화면 열기`,
+          callback: () => {
+            state.turn2P = nextTurn;
+            update2PTurnVisuals();
+          }
+        });
+      } else {
+        state.turn2P = nextTurn;
+        update2PTurnVisuals();
+      }
+    }
+
+    /* =========================================================================
+       1P vs AI LOGIC
+       ========================================================================= */
+    function handleAIClick(key) {
+      const cell = document.querySelector(`#grid2 .grid-cell[data-key="${key}"]`);
+      if (!cell || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+
+      playArtilleryShot();
+      state.shotsFired++;
+
+      const target = state.b2Grid[key];
+      if (target && target.ship) {
+        target.hit = true;
+        state.shotsHit++;
+        cell.classList.add('hit');
+        playExplosionHit();
+        document.getElementById('boardHint2').innerHTML = `🎯 <strong>[${key}]</strong> 명중! 적 함선 피격!`;
+
+        checkShipSunk('b2', target.ship);
+        checkGameOver();
+
+        if (!state.gameOver) {
+          document.getElementById('turnStatus').textContent = '적 사령관이 조준 중...';
+          setTimeout(aiTurn, 700);
+        }
+      } else {
+        cell.classList.add('miss');
+        playWaterSplash();
+        document.getElementById('boardHint2').innerHTML = `🌊 <strong>[${key}]</strong> 빗나감! 물보라만 일었습니다.`;
+
+        document.getElementById('turnStatus').textContent = '적 사령관이 조준 중...';
+        setTimeout(aiTurn, 700);
+      }
+
+      updateTelemetry();
+    }
+
+    function checkShipSunk(team, shipId) {
+      const ships = (team === 'b2') ? state.b2Ships : state.b1Ships;
+      const grid = (team === 'b2') ? state.b2Grid : state.b1Grid;
+      const ship = ships.find(s => s.id === shipId);
+
+      if (ship && !ship.sunk) {
+        const allHit = ship.coords.every(c => grid[c] && grid[c].hit);
+        if (allHit) {
+          ship.sunk = true;
+          playShipSunkSiren();
+          const prefix = (team === 'b2') ? 'b2-' : 'b1-';
+          document.getElementById(`${prefix}${shipId}`)?.classList.add('sunk');
+
+          const spec = SHIPS_SPEC.find(s => s.id === shipId);
+          alert(`🚨 [격침!] ${team === 'b2' ? '적군' : '아군'}의 ${spec.name}(${spec.size}칸) 침몰!`);
+        }
+      }
+    }
+
+    function aiTurn() {
+      if (state.gameOver) return;
+
+      let strikeCoord = null;
+
+      if (state.mode === 'ai-hard' && state.aiHuntStack.length > 0) {
+        strikeCoord = state.aiHuntStack.pop();
+      }
+
+      while (!strikeCoord || isAlreadyShot('grid1', strikeCoord)) {
+        const r = ROWS[Math.floor(Math.random() * 10)];
+        const c = Math.floor(Math.random() * 10) + 1;
+        strikeCoord = `${r}${c}`;
+      }
+
+      const cell = document.querySelector(`#grid1 .grid-cell[data-key="${strikeCoord}"]`);
+      playArtilleryShot();
+
+      const target = state.b1Grid[strikeCoord];
+      if (target && target.ship) {
+        target.hit = true;
+        cell.classList.remove('ship-part');
+        cell.classList.add('hit');
+        playExplosionHit();
+
+        if (state.mode === 'ai-hard') {
+          pushAdjacentCoords(strikeCoord);
+        }
+
+        checkShipSunk('b1', target.ship);
+        checkGameOver();
+      } else {
+        cell.classList.add('miss');
+        playWaterSplash();
+      }
+
+      if (!state.gameOver) {
+        document.getElementById('turnStatus').textContent = '사령관의 사격 턴!';
+      }
+      updateTelemetry();
+    }
+
+    function isAlreadyShot(gridId, coord) {
+      const cell = document.querySelector(`#${gridId} .grid-cell[data-key="${coord}"]`);
+      return cell && (cell.classList.contains('hit') || cell.classList.contains('miss'));
+    }
+
+    function pushAdjacentCoords(coord) {
+      const rChar = coord[0];
+      const col = parseInt(coord.slice(1));
+      const rIdx = ROWS.indexOf(rChar);
+
+      const candidates = [
+        rIdx > 0 ? `${ROWS[rIdx - 1]}${col}` : null,
+        rIdx < 9 ? `${ROWS[rIdx + 1]}${col}` : null,
+        col > 1 ? `${rChar}${col - 1}` : null,
+        col < 10 ? `${rChar}${col + 1}` : null
+      ].filter(c => c && !isAlreadyShot('grid1', c));
+
+      candidates.forEach(c => state.aiHuntStack.push(c));
+    }
+
+    function checkGameOver() {
+      const b2AllSunk = state.b2Ships.every(s => s.sunk);
+      const b1AllSunk = state.b1Ships.every(s => s.sunk);
+
+      if (b2AllSunk) {
+        state.gameOver = true;
+        playVictoryFanfare();
+        alert('🏆 [전투 승리!] 적의 모든 전함을 격침하고 제해권을 완전히 장악했습니다!');
+      } else if (b1AllSunk) {
+        state.gameOver = true;
+        alert('💀 [함대 궤멸...] 아군의 모든 함선이 침몰하였습니다. 작전을 재정비하세요!');
+      }
+    }
+
+    function updateTelemetry() {
+      document.getElementById('statShots').textContent = `${state.shotsFired}회`;
+      const acc = state.shotsFired > 0 ? ((state.shotsHit / state.shotsFired) * 100).toFixed(1) : '0.0';
+      document.getElementById('statAccuracy').textContent = `${acc}%`;
+      const enemySunkCount = state.b2Ships.filter(s => s.sunk).length;
+      document.getElementById('statSunkCount').textContent = `${enemySunkCount} / 5척`;
+    }
+
+    /* =========================================================================
+       SPEED QUIZ MODE
+       ========================================================================= */
+    function startSpeedQuiz() {
+      state.quizTimeLeft = 30;
+      state.quizScore = 0;
+      state.quizCombo = 0;
+      state.quizHits = 0;
+      state.quizTotalAttempts = 0;
+
+      document.getElementById('boardTitle2').textContent = '🎯 좌표 탐색 타격 레이더';
+      document.getElementById('boardSub2').textContent = '(목표 좌표를 찾아 빠르게 클릭하세요)';
+      document.getElementById('boardHint2').textContent = '상단에 제시되는 목표 좌표를 찾아 신속하게 타격하세요!';
+
+      document.querySelectorAll('#grid2 .grid-cell').forEach(c => c.className = 'grid-cell');
+      nextQuizTarget();
+      updateQuizBanner();
+
+      if (state.quizInterval) clearInterval(state.quizInterval);
+      state.quizInterval = setInterval(() => {
+        state.quizTimeLeft--;
+        updateQuizBanner();
+        if (state.quizTimeLeft <= 0) {
+          clearInterval(state.quizInterval);
+          state.quizInterval = null;
+          endSpeedQuiz();
+        }
+      }, 1000);
+
+      playSonarPing();
+    }
+
+    function nextQuizTarget() {
+      const r = ROWS[Math.floor(Math.random() * 10)];
+      const c = Math.floor(Math.random() * 10) + 1;
+      state.quizTargetCoord = `${r}${c}`;
+      document.getElementById('quizTargetText').textContent = `${r} ${c}`;
+      document.getElementById('quizKoreanHint').textContent = `(${r}행 ${c}열)`;
+    }
+
+    function handleSpeedQuizClick(key) {
+      if (state.quizTimeLeft <= 0) return;
+
+      state.quizTotalAttempts++;
+      const cell = document.querySelector(`#grid2 .grid-cell[data-key="${key}"]`);
+
+      if (key === state.quizTargetCoord) {
+        state.quizHits++;
+        state.quizCombo++;
+        const points = 10 + (state.quizCombo * 2);
+        state.quizScore += points;
+
+        playArtilleryShot();
+        setTimeout(playExplosionHit, 100);
+
+        if (cell) {
+          cell.classList.add('quiz-correct');
+          setTimeout(() => cell.classList.remove('quiz-correct'), 400);
+        }
+
+        document.getElementById('boardHint2').innerHTML = `🎯 <strong>[정답!]</strong> [${key}] 정확히 명중! (+${points}점)`;
+        nextQuizTarget();
+      } else {
+        state.quizCombo = 0;
+        playWaterSplash();
+        document.getElementById('boardHint2').innerHTML = `❌ <strong>[오답!]</strong> 클릭한 곳은 [${key}]입니다. 목표인 <strong>[${state.quizTargetCoord}]</strong>를 찾으세요!`;
+      }
+      updateQuizBanner();
+    }
+
+    function updateQuizBanner() {
+      document.getElementById('quizTimerVal').textContent = `${state.quizTimeLeft}초`;
+      document.getElementById('quizScoreVal').textContent = `${state.quizScore}점`;
+      document.getElementById('quizComboVal').textContent = `${state.quizCombo} COMBO`;
+    }
+
+    function endSpeedQuiz() {
+      playShipSunkSiren();
+      let rankBadge = '⚓ 견습 레이더병';
+      if (state.quizHits >= 18) rankBadge = '🌟 전설의 함대 제독';
+      else if (state.quizHits >= 12) rankBadge = '🎖️ 1급 정밀 포술장';
+      else if (state.quizHits >= 6) rankBadge = '🧭 정예 항해사';
+
+      showTurnModal({
+        icon: '⏱️',
+        title: '좌표 스피드 훈련 종료!',
+        desc: `최종 점수: <strong>${state.quizScore}점</strong><br>총 정답 수: <strong>${state.quizHits}회</strong> (정확도: ${state.quizTotalAttempts > 0 ? ((state.quizHits / state.quizTotalAttempts) * 100).toFixed(1) : 0}%)<br>부여 칭호: <strong>${rankBadge}</strong>`,
+        btnText: '다시 훈련 도전하기',
+        callback: () => startSpeedQuiz()
+      });
+    }
+
+    function showTurnModal({ icon, title, desc, btnText, callback }) {
+      document.getElementById('turnModalIcon').textContent = icon || '🔒';
+      document.getElementById('turnModalTitle').textContent = title;
+      document.getElementById('turnModalDesc').innerHTML = desc;
+      document.getElementById('btnReadyTurn').textContent = btnText || '작전 화면 확인';
+      state.modalCallback = callback;
+      document.getElementById('turnModal').classList.add('open');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

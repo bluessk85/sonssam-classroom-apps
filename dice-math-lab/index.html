@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수학 확률 탐구 실험실 프로 | Dice Math & Probability Lab Pro</title>
+  <meta name="description" content="3D 피직스 주사위 큐브와 10,000회 고속 몬테카를로 시뮬레이션으로 큰 수의 법칙과 확률 분포를 탐구하는 교실 수업 웹앱" />
+  <meta property="og:title" content="수학 확률 탐구 실험실 프로 | 손쌤 에듀테크" />
+  <meta property="og:description" content="두 눈의 차, 합(2~12), 곱(홀짝 75%), 3개 주사위 정규분포, 주사위 경마 게임 지원" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+  <script src="../common-nav.js" defer></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --accent: #38bdf8;
+      --accent-grad: linear-gradient(135deg, #38bdf8, #818cf8);
+      --primary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #f43f5e;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #1e1b4b 0%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      font-size: 28px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-text h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+    .logo-text p { font-size: 12px; color: var(--text-muted); }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* Button Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent-grad); color: #0f172a; font-weight: 800; }
+    .btn-primary:hover { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); }
+    .btn-ghost { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); }
+    .btn-danger { background: rgba(244, 63, 94, 0.15); color: #fda4af; border-color: rgba(244, 63, 94, 0.4); }
+    .btn-danger:hover { background: #f43f5e; color: white; }
+
+    /* Layout */
+    .main-layout {
+      max-width: 1560px;
+      margin: 20px auto;
+      padding: 0 20px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+    @media (max-width: 1080px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Left: Stage & Dice Canvas */
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* Mode Selector Tabs */
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .mode-tab {
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-tab:hover { border-color: var(--accent); color: var(--text); }
+    .mode-tab.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    /* Tactile Dice Stage */
+    .dice-stage {
+      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      min-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 2px 25px rgba(0,0,0,0.6);
+      cursor: pointer;
+    }
+    .dice-stage.three-active {
+      gap: 16px;
+    }
+
+    /* Realistic Tactile Die */
+    .die {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 45%, #e2e8f0 100%);
+      border-radius: 26px;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 
+        0 20px 35px rgba(0, 0, 0, 0.45),
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 1),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      user-select: none;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+    .dice-stage.three-active .die {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      padding: 10px;
+    }
+    .die:hover {
+      transform: translateY(-4px) scale(1.03);
+    }
+    .die:active {
+      transform: translateY(2px) scale(0.97);
+    }
+
+    /* Tumbling animation when rolling */
+    .die.rolling {
+      animation: diceTumble 0.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    }
+    @keyframes diceTumble {
+      0% { transform: translateY(0) rotate(0deg) scale(1); }
+      25% { transform: translateY(-22px) rotate(-16deg) scale(1.06); }
+      50% { transform: translateY(8px) rotate(14deg) scale(0.96); }
+      75% { transform: translateY(-10px) rotate(-6deg) scale(1.03); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+    /* Die SVG vector pips */
+    .die-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Roll Outcome Result Banner */
+    .outcome-banner {
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .outcome-eq {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+    .outcome-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Simulation Controls */
+    .roll-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .main-roll-btn {
+      background: var(--accent-grad);
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 900;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+      transition: all 0.2s;
+    }
+    .main-roll-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(56, 189, 248, 0.5);
+    }
+    .fast-sim-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .btn-sim {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sim:hover { background: rgba(56, 189, 248, 0.2); border-color: var(--accent); }
+
+    /* Right: Distribution Analysis & Charts */
+    .analysis-area {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Overview Stat Cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 700; }
+    .stat-value { font-size: 26px; font-weight: 900; color: var(--text); font-family: monospace; }
+
+    /* Chart Card */
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chart-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* Canvas / Bar Visualizer */
+    .chart-bars-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 48px 1fr 70px 70px;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+    .bar-label { font-weight: 800; color: #cbd5e1; text-align: center; }
+    .bar-track {
+      background: #0f172a;
+      height: 22px;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--accent-grad);
+      border-radius: 6px;
+      transition: width 0.25s ease-out;
+      position: relative;
+    }
+    .bar-theoretical-marker {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 3px;
+      background: #f59e0b;
+      z-index: 2;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+    }
+    .bar-count { text-align: right; font-weight: 800; font-family: monospace; color: var(--accent); }
+    .bar-pct { text-align: right; color: var(--text-muted); font-size: 12px; font-family: monospace; }
+
+    /* Horse Race Track View (Visible in race mode) */
+    .race-track-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .horse-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 60px;
+      align-items: center;
+      gap: 12px;
+    }
+    .horse-num { font-weight: 900; color: #38bdf8; text-align: center; }
+    .track-line {
+      height: 28px;
+      background: #0f172a;
+      border-radius: 8px;
+      position: relative;
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+    }
+    .horse-avatar {
+      font-size: 20px;
+      position: absolute;
+      transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .finish-line {
+      position: absolute;
+      right: 0; top: 0; bottom: 0; width: 6px;
+      background: repeating-linear-gradient(45deg, #f59e0b, #f59e0b 4px, #000 4px, #000 8px);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Mathematical Sample Space Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .sample-space-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 16px;
+    }
+    .grid-cell {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 4px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .grid-cell.header-cell {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .grid-cell.highlight {
+      background: rgba(99, 102, 241, 0.35);
+      border-color: #818cf8;
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-logo">
+      <div class="logo-icon">🎲</div>
+      <div class="logo-text">
+        <h1>수학 확률 탐구 실험실 프로 (Dice Math Lab Pro)</h1>
+        <p>초·중등 수학 확률과 통계 & 큰 수의 법칙(LLN) 인터랙티브 탐구 솔루션</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btnSampleSpace">📐 36가지 표본공간 보기</button>
+      <button class="btn btn-ghost" id="btnExportCSV">📥 통계 CSV 다운로드</button>
+      <button class="btn btn-danger" id="btnReset">🔄 기록 초기화</button>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="main-layout">
+    <!-- Left: Interactive Dice Stage -->
+    <section class="stage-card">
+      <div style="font-size: 14px; font-weight: 800; color: var(--text-muted);">수학 탐구 주제 선택</div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="diff">두 눈의 차<br><span style="font-size:10px; font-weight:normal;">(0 ~ 5)</span></button>
+        <button class="mode-tab" data-mode="sum">두 눈의 합<br><span style="font-size:10px; font-weight:normal;">(2 ~ 12)</span></button>
+        <button class="mode-tab" data-mode="product">두 눈의 곱<br><span style="font-size:10px; font-weight:normal;">(홀짝/배수)</span></button>
+        <button class="mode-tab" data-mode="three-sum">세 눈의 합<br><span style="font-size:10px; font-weight:normal;">(정규분포 3~18)</span></button>
+        <button class="mode-tab" data-mode="race">말판 달리기<br><span style="font-size:10px; font-weight:normal;">(2~12 레이스)</span></button>
+      </div>
+
+      <!-- Dice Stage -->
+      <div class="dice-stage" id="diceStage" title="클릭하거나 스페이스바를 눌러 주사위를 굴립니다">
+        <!-- Die 1 (Navy Pips) -->
+        <div class="die" id="die1"></div>
+
+        <!-- Die 2 (Crimson Pips) -->
+        <div class="die" id="die2"></div>
+
+        <!-- Die 3 (Green Pips - only in three-sum mode) -->
+        <div class="die" id="die3" style="display: none;"></div>
+      </div>
+
+      <!-- Result Banner -->
+      <div class="outcome-banner">
+        <div class="outcome-eq" id="outcomeEq">주사위를 던져보세요!</div>
+        <div class="outcome-desc" id="outcomeDesc">스페이스바를 누르거나 아래 버튼을 누르면 실시간 집계됩니다.</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="roll-controls">
+        <button class="main-roll-btn" id="btnRollSingle">🎲 주사위 굴리기 (스페이스바)</button>
+
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 6px;">큰 수의 법칙 고속 몬테카를로 시뮬레이션</div>
+        <div class="fast-sim-grid">
+          <button class="btn-sim" onclick="runFastSim(10)">+10회</button>
+          <button class="btn-sim" onclick="runFastSim(100)">+100회</button>
+          <button class="btn-sim" onclick="runFastSim(1000)">+1,000회</button>
+          <button class="btn-sim" onclick="runFastSim(10000)">+10,000회</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Frequency Charts & Inquiry Stats -->
+    <section class="analysis-area">
+      <!-- Quick Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">총 실험 횟수 (N)</div>
+          <div class="stat-value" id="statTotalN">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">최빈값 (가장 자주 나온 값)</div>
+          <div class="stat-value" id="statMode" style="color: #38bdf8;">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">실험적 평균값 (Mean)</div>
+          <div class="stat-value" id="statMean">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">이론상 기댓값 (Expected)</div>
+          <div class="stat-value" id="statExpected" style="color: #f59e0b;">-</div>
+        </div>
+      </div>
+
+      <!-- Frequency Chart -->
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <span>📊 상대도수 vs 이론적 확률 분포 비교</span>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background: var(--accent);"></div>
+              <span>실험 상대도수(%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #f59e0b;"></div>
+              <span>수학적 이론확률(%)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-bars-wrap" id="chartBarsArea">
+          <!-- Dynamic distribution bars rendered here -->
+        </div>
+      </div>
+
+      <!-- Horse Race View (Active in Race Mode) -->
+      <div class="race-track-card" id="raceTrackCard">
+        <div style="font-size: 16px; font-weight: 800; color: #f59e0b;">🏇 주사위 합 말판 달리기 트랙 (합 2~12)</div>
+        <div style="font-size: 12px; color: var(--text-muted);">두 주사위의 합에 해당하는 번호의 말이 1칸씩 전진합니다. 10칸에 먼저 도달하면 완주!</div>
+        <div id="raceWinnerBanner" style="display: none; background: #ecfdf5; border: 1.5px solid #10b981; color: #065f46; padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-top: 10px; font-weight: 700;"></div>
+        <div id="horsesArea" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Sample Space 36 Grid Modal -->
+  <div class="modal-overlay" id="sampleModal">
+    <div class="sample-space-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--accent);">📐 6×6 표본공간 (전체 36가지 경우의 수)</h3>
+        <button class="btn btn-ghost" id="btnCloseModal" style="padding: 4px 10px;">닫기</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+        첫 번째 주사위(가로)와 두 번째 주사위(세로)의 조합에 따른 현재 연산 결과입니다.
+      </p>
+      <div class="sample-grid" id="sampleGrid">
+        <!-- 7x7 grid table injected here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       AUDIO SYNTHESIZER: REALISTIC DICE TUMBLING & SETTLE CLICKS
+       ========================================================================= */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playDiceRollSound() {
+      if (window.isSonssamAudioMuted && window.isSonssamAudioMuted()) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      // Generate 4-6 rapid, authentic wooden clicking impacts
+      const numTaps = Math.floor(Math.random() * 3) + 4;
+      for (let i = 0; i < numTaps; i++) {
+        const delay = i * 0.07 + Math.random() * 0.04;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        // Realistic wood resonance between 450Hz and 850Hz
+        osc.frequency.setValueAtTime(500 + Math.random() * 350, audioCtx.currentTime + delay);
+
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+        gain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + delay + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.05);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + 0.06);
+      }
+    }
+
+    /* =========================================================================
+       STATE & THEORETICAL DISTRIBUTIONS
+       ========================================================================= */
+    const state = {
+      mode: 'diff', // 'diff', 'sum', 'product', 'three-sum', 'race'
+      totalRolls: 0,
+      counts: {},
+      horsePositions: {}, // for race mode (2 to 12)
+      raceWon: false,
+      die1: 1,
+      die2: 1,
+      die3: 1,
+      rolling: false
+    };
+
+    // Precomputed theoretical distributions
+    const THEORETICAL = {
+      diff: {
+        keys: [0, 1, 2, 3, 4, 5],
+        probs: { 0: 6/36, 1: 10/36, 2: 8/36, 3: 6/36, 4: 4/36, 5: 2/36 },
+        expected: (0*6 + 1*10 + 2*8 + 3*6 + 4*4 + 5*2) / 36 // 1.944
+      },
+      sum: {
+        keys: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        probs: {
+          2: 1/36, 3: 2/36, 4: 3/36, 5: 4/36, 6: 5/36, 7: 6/36,
+          8: 5/36, 9: 4/36, 10: 3/36, 11: 2/36, 12: 1/36
+        },
+        expected: 7.0
+      },
+      product: {
+        keys: ['홀수(Odd)', '짝수(Even)'],
+        probs: { '홀수(Odd)': 9/36, '짝수(Even)': 27/36 },
+        expected: '75% (짝수 우세)'
+      },
+      'three-sum': {
+        keys: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+        probs: {}, // calculated in init
+        expected: 10.5
+      }
+    };
+
+    // Calculate 3-dice sum probabilities (216 total combinations)
+    (function calc3DiceProbs() {
+      const counts = {};
+      for (let i = 3; i <= 18; i++) counts[i] = 0;
+      for (let a = 1; a <= 6; a++) {
+        for (let b = 1; b <= 6; b++) {
+          for (let c = 1; c <= 6; c++) {
+            counts[a + b + c]++;
+          }
+        }
+      }
+      for (let i = 3; i <= 18; i++) {
+        THEORETICAL['three-sum'].probs[i] = counts[i] / 216;
+      }
+    })();
+
+    /* =========================================================================
+       INIT & EVENT HANDLERS
+       ========================================================================= */
+    function init() {
+      resetState();
+      bindEvents();
+      renderBars();
+      renderHorseTrack();
+      updateStats();
+    }
+
+    function resetState() {
+      state.totalRolls = 0;
+      state.counts = {};
+      state.raceWon = false;
+      const winnerBanner = document.getElementById('raceWinnerBanner');
+      if (winnerBanner) winnerBanner.style.display = 'none';
+
+      const keys = getActiveKeys();
+      keys.forEach(k => state.counts[k] = 0);
+
+      // Race mode reset
+      for (let i = 2; i <= 12; i++) state.horsePositions[i] = 0;
+
+      renderAllDice();
+      updateStats();
+      renderBars();
+      renderHorseTrack();
+      document.getElementById('outcomeEq').textContent = '주사위를 던져보세요!';
+      document.getElementById('outcomeDesc').textContent = '스페이스바 또는 버튼으로 탐구를 시작하세요.';
+    }
+
+    function getActiveKeys() {
+      if (state.mode === 'diff') return THEORETICAL.diff.keys;
+      if (state.mode === 'sum' || state.mode === 'race') return THEORETICAL.sum.keys;
+      if (state.mode === 'product') return THEORETICAL.product.keys;
+      if (state.mode === 'three-sum') return THEORETICAL['three-sum'].keys;
+      return [];
+    }
+
+    function bindEvents() {
+      // Mode tabs
+      document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          state.mode = tab.dataset.mode;
+
+          // Toggle 3rd die visibility
+          const is3Dice = (state.mode === 'three-sum');
+          const die3El = document.getElementById('die3');
+          if (die3El) die3El.style.display = is3Dice ? 'flex' : 'none';
+          document.getElementById('diceStage').classList.toggle('three-active', is3Dice);
+
+          // Toggle horse race card
+          document.getElementById('raceTrackCard').style.display = (state.mode === 'race') ? 'flex' : 'none';
+
+          resetState();
+        });
+      });
+
+      // Roll Single
+      document.getElementById('btnRollSingle').addEventListener('click', () => rollDice(false));
+      document.getElementById('diceStage').addEventListener('click', () => rollDice(false));
+
+      // Spacebar
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          rollDice(false);
+        }
+      });
+
+      // Reset
+      document.getElementById('btnReset').addEventListener('click', () => {
+        resetState();
+      });
+
+      // Sample Space Modal
+      document.getElementById('btnSampleSpace').addEventListener('click', openSampleSpaceModal);
+      document.getElementById('btnCloseModal').addEventListener('click', () => {
+        document.getElementById('sampleModal').classList.remove('open');
+      });
+
+      // CSV Export
+      document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+    }
+
+    /* =========================================================================
+       TACTILE VECTOR DICE RENDERER & ROLLING ANIMATION
+       ========================================================================= */
+    function getDieSvg(value, pipColor = '#1e293b') {
+      const redCenter = (value === 1) ? '#e11d48' : pipColor;
+      let circles = '';
+
+      if (value === 1) {
+        circles = `<circle cx="50" cy="50" r="16" fill="${redCenter}"/>`;
+      } else if (value === 2) {
+        circles = `
+          <circle cx="28" cy="28" r="9.5" fill="${pipColor}"/>
+          <circle cx="72" cy="72" r="9.5" fill="${pipColor}"/>
+        `;
+      } else if (value === 3) {
+        circles = `
+          <circle cx="26" cy="26" r="8.5" fill="${pipColor}"/>
+          <circle cx="50" cy="50" r="8.5" fill="${pipColor}"/>
+          <circle cx="74" cy="74" r="8.5" fill="${pipColor}"/>
+        `;
+      } else if (value === 4) {
+        circles = `
+          <circle cx="28" cy="28" r="9" fill="${pipColor}"/>
+          <circle cx="72" cy="28" r="9" fill="${pipColor}"/>
+          <circle cx="28" cy="72" r="9" fill="${pipColor}"/>
+          <circle cx="72" cy="72" r="9" fill="${pipColor}"/>
+        `;
+      } else if (value === 5) {
+        circles = `
+          <circle cx="26" cy="26" r="8.5" fill="${pipColor}"/>
+          <circle cx="74" cy="26" r="8.5" fill="${pipColor}"/>
+          <circle cx="50" cy="50" r="8.5" fill="${pipColor}"/>
+          <circle cx="26" cy="74" r="8.5" fill="${pipColor}"/>
+          <circle cx="74" cy="74" r="8.5" fill="${pipColor}"/>
+        `;
+      } else if (value === 6) {
+        circles = `
+          <circle cx="28" cy="24" r="8.5" fill="${pipColor}"/>
+          <circle cx="28" cy="50" r="8.5" fill="${pipColor}"/>
+          <circle cx="28" cy="76" r="8.5" fill="${pipColor}"/>
+          <circle cx="72" cy="24" r="8.5" fill="${pipColor}"/>
+          <circle cx="72" cy="50" r="8.5" fill="${pipColor}"/>
+          <circle cx="72" cy="76" r="8.5" fill="${pipColor}"/>
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 100 100" class="die-svg" xmlns="http://www.w3.org/2000/svg">
+          <filter id="pipDepth" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="0.8" flood-color="rgba(0,0,0,0.4)" />
+          </filter>
+          <g filter="url(#pipDepth)">
+            ${circles}
+          </g>
+        </svg>
+      `;
+    }
+
+    function renderDieFace(elementId, value, pipColor) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.innerHTML = getDieSvg(value, pipColor);
+    }
+
+    function renderAllDice() {
+      renderDieFace('die1', state.die1, '#1e293b');
+      renderDieFace('die2', state.die2, '#e11d48');
+      if (state.mode === 'three-sum') {
+        renderDieFace('die3', state.die3, '#059669');
+      }
+    }
+
+    function rollDice(isSimulation = false) {
+      if (state.rolling && !isSimulation) return;
+
+      const d1 = Math.floor(Math.random() * 6) + 1;
+      const d2 = Math.floor(Math.random() * 6) + 1;
+      const d3 = (state.mode === 'three-sum') ? Math.floor(Math.random() * 6) + 1 : 1;
+
+      state.die1 = d1;
+      state.die2 = d2;
+      state.die3 = d3;
+
+      if (!isSimulation) {
+        state.rolling = true;
+        playDiceRollSound();
+
+        const die1El = document.getElementById('die1');
+        const die2El = document.getElementById('die2');
+        const die3El = document.getElementById('die3');
+
+        die1El.classList.add('rolling');
+        die2El.classList.add('rolling');
+        if (state.mode === 'three-sum' && die3El) die3El.classList.add('rolling');
+
+        // Rapid visual shuffle during tumble
+        let rollTicks = 0;
+        const shuffleTimer = setInterval(() => {
+          renderDieFace('die1', Math.floor(Math.random() * 6) + 1, '#1e293b');
+          renderDieFace('die2', Math.floor(Math.random() * 6) + 1, '#e11d48');
+          if (state.mode === 'three-sum') {
+            renderDieFace('die3', Math.floor(Math.random() * 6) + 1, '#059669');
+          }
+          rollTicks++;
+          if (rollTicks > 7) clearInterval(shuffleTimer);
+        }, 55);
+
+        setTimeout(() => {
+          clearInterval(shuffleTimer);
+          die1El.classList.remove('rolling');
+          die2El.classList.remove('rolling');
+          if (state.mode === 'three-sum' && die3El) die3El.classList.remove('rolling');
+
+          renderDieFace('die1', d1, '#1e293b');
+          renderDieFace('die2', d2, '#e11d48');
+          if (state.mode === 'three-sum') renderDieFace('die3', d3, '#059669');
+
+          recordOutcome(d1, d2, d3, false);
+          state.rolling = false;
+        }, 480);
+      } else {
+        recordOutcome(d1, d2, d3, true);
+      }
+    }
+
+    function recordOutcome(d1, d2, d3, isSimulation = false) {
+      state.totalRolls++;
+      let outcomeKey;
+      let eqText = '';
+      let descText = '';
+
+      if (state.mode === 'diff') {
+        outcomeKey = Math.abs(d1 - d2);
+        eqText = `|${d1} - ${d2}| = ${outcomeKey}`;
+        descText = `두 눈의 수의 차이는 ${outcomeKey}입니다. (이론상 가장 흔한 차이는 1)`;
+      } else if (state.mode === 'sum' || state.mode === 'race') {
+        outcomeKey = d1 + d2;
+        eqText = `${d1} + ${d2} = ${outcomeKey}`;
+        descText = `두 눈의 수의 합은 ${outcomeKey}입니다. (이론상 가장 흔한 합은 7)`;
+
+        if (state.mode === 'race') {
+          advanceHorse(outcomeKey, isSimulation);
+        }
+      } else if (state.mode === 'product') {
+        const prod = d1 * d2;
+        const isOdd = (prod % 2 !== 0);
+        outcomeKey = isOdd ? '홀수(Odd)' : '짝수(Even)';
+        eqText = `${d1} × ${d2} = ${prod} [${outcomeKey}]`;
+        descText = `곱이 ${prod}이므로 ${outcomeKey}입니다. (짝수 확률 75% vs 홀수 25%)`;
+      } else if (state.mode === 'three-sum') {
+        outcomeKey = d1 + d2 + d3;
+        eqText = `${d1} + ${d2} + ${d3} = ${outcomeKey}`;
+        descText = `세 주사위의 합은 ${outcomeKey}입니다. (중심극한정리 정규분포 곡선 형성)`;
+      }
+
+      state.counts[outcomeKey] = (state.counts[outcomeKey] || 0) + 1;
+
+      document.getElementById('outcomeEq').textContent = eqText;
+      document.getElementById('outcomeDesc').textContent = descText;
+
+      updateStats();
+      renderBars();
+    }
+
+    function runFastSim(count) {
+      for (let i = 0; i < count; i++) {
+        rollDice(true);
+      }
+      renderAllDice();
+      playDiceRollSound();
+      updateStats();
+      renderBars();
+    }
+
+    /* =========================================================================
+       HORSE RACE LOGIC
+       ========================================================================= */
+    function renderHorseTrack() {
+      const area = document.getElementById('horsesArea');
+      area.innerHTML = '';
+
+      for (let h = 2; h <= 12; h++) {
+        const row = document.createElement('div');
+        row.className = 'horse-row';
+        row.innerHTML = `
+          <div class="horse-num">#${h}</div>
+          <div class="track-line">
+            <div class="horse-avatar" id="horse-${h}">🏇</div>
+            <div class="finish-line"></div>
+          </div>
+          <div style="font-size: 11px; color: #94a3b8; font-weight:700; text-align:right;" id="horse-dist-${h}">0/10</div>
+        `;
+        area.appendChild(row);
+      }
+    }
+
+    function advanceHorse(sum, isSimulation = false) {
+      if (sum < 2 || sum > 12) return;
+      state.horsePositions[sum] = Math.min(10, (state.horsePositions[sum] || 0) + 1);
+      const pos = state.horsePositions[sum];
+
+      const horseEl = document.getElementById(`horse-${sum}`);
+      const distEl = document.getElementById(`horse-dist-${sum}`);
+      if (horseEl && distEl) {
+        horseEl.style.left = `calc(${pos * 9.5}% - 4px)`;
+        distEl.textContent = `${pos}/10`;
+      }
+
+      if (pos >= 10 && !state.raceWon && !isSimulation) {
+        state.raceWon = true;
+        const banner = document.getElementById('raceWinnerBanner');
+        if (banner) {
+          banner.style.display = 'block';
+          banner.innerHTML = `🏆 <strong>#${sum}번 말 완주 1위!</strong> (주사위 2개의 합 7이 왜 가장 유리한지 표본공간에서 확인해보세요!)`;
+        }
+      }
+    }
+
+    /* =========================================================================
+       STATISTICS & CHARTS
+       ========================================================================= */
+    function updateStats() {
+      document.getElementById('statTotalN').textContent = state.totalRolls.toLocaleString();
+
+      // Find mode (most frequent)
+      let maxCount = -1;
+      let modeKey = '-';
+      let sumProducts = 0;
+
+      Object.entries(state.counts).forEach(([k, count]) => {
+        if (count > maxCount && count > 0) {
+          maxCount = count;
+          modeKey = k;
+        }
+        if (typeof Number(k) === 'number' && !isNaN(Number(k))) {
+          sumProducts += Number(k) * count;
+        }
+      });
+
+      document.getElementById('statMode').textContent = modeKey;
+
+      if (state.totalRolls > 0 && typeof Number(modeKey) === 'number' && !isNaN(Number(modeKey))) {
+        const mean = (sumProducts / state.totalRolls).toFixed(2);
+        document.getElementById('statMean').textContent = mean;
+      } else {
+        document.getElementById('statMean').textContent = '-';
+      }
+
+      const exp = THEORETICAL[state.mode] ? THEORETICAL[state.mode].expected : '-';
+      document.getElementById('statExpected').textContent = (typeof exp === 'number') ? exp.toFixed(2) : exp;
+    }
+
+    function renderBars() {
+      const area = document.getElementById('chartBarsArea');
+      area.innerHTML = '';
+      const keys = getActiveKeys();
+
+      // Find max proportion for scaling
+      let maxProp = 0.05;
+      keys.forEach(k => {
+        const obsProp = state.totalRolls > 0 ? state.counts[k] / state.totalRolls : 0;
+        const theoProp = (THEORETICAL[state.mode] && THEORETICAL[state.mode].probs[k]) || 0;
+        maxProp = Math.max(maxProp, obsProp, theoProp);
+      });
+
+      keys.forEach(k => {
+        const count = state.counts[k] || 0;
+        const obsPct = state.totalRolls > 0 ? (count / state.totalRolls) * 100 : 0;
+        const theoPct = ((THEORETICAL[state.mode] && THEORETICAL[state.mode].probs[k]) || 0) * 100;
+
+        const row = document.createElement('div');
+        row.className = 'bar-row';
+
+        const fillWidth = (obsPct / (maxProp * 100)) * 100;
+        const markerPos = (theoPct / (maxProp * 100)) * 100;
+
+        row.innerHTML = `
+          <div class="bar-label">${k}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${Math.min(100, fillWidth)}%;"></div>
+            <div class="bar-theoretical-marker" style="left: ${Math.min(99, markerPos)}%;" title="이론 확률: ${theoPct.toFixed(1)}%"></div>
+          </div>
+          <div class="bar-count">${count.toLocaleString()}회</div>
+          <div class="bar-pct">${obsPct.toFixed(1)}% <span style="color:#f59e0b; font-size:10px;">(${theoPct.toFixed(1)}%)</span></div>
+        `;
+        area.appendChild(row);
+      });
+    }
+
+    /* =========================================================================
+       SAMPLE SPACE MODAL
+       ========================================================================= */
+    function openSampleSpaceModal() {
+      const grid = document.getElementById('sampleGrid');
+      grid.innerHTML = '';
+
+      // Header row
+      grid.appendChild(makeGridCell('🎲', true));
+      for (let c = 1; c <= 6; c++) grid.appendChild(makeGridCell(`D1: ${c}`, true));
+
+      // 6 rows
+      for (let r = 1; r <= 6; r++) {
+        grid.appendChild(makeGridCell(`D2: ${r}`, true));
+        for (let c = 1; c <= 6; c++) {
+          let val = '';
+          if (state.mode === 'diff') val = `|${c}-${r}| = ${Math.abs(c - r)}`;
+          else if (state.mode === 'sum' || state.mode === 'race') val = `${c}+${r} = ${c + r}`;
+          else if (state.mode === 'product') val = `${c*r} (${(c*r)%2===0 ? '짝' : '홀'})`;
+          else val = `${c},${r}`;
+
+          const cell = makeGridCell(val, false);
+          // Highlight if matches current roll
+          if (c === state.die1 && r === state.die2) cell.classList.add('highlight');
+          grid.appendChild(cell);
+        }
+      }
+
+      document.getElementById('sampleModal').classList.add('open');
+    }
+
+    function makeGridCell(text, isHeader) {
+      const div = document.createElement('div');
+      div.className = `grid-cell ${isHeader ? 'header-cell' : ''}`;
+      div.textContent = text;
+      return div;
+    }
+
+    /* =========================================================================
+       CSV EXPORT
+       ========================================================================= */
+    function exportCSV() {
+      let csv = '\uFEFF결과값,실험도수(회),상대도수(%),이론확률(%)\n';
+      const keys = getActiveKeys();
+      keys.forEach(k => {
+        const count = state.counts[k] || 0;
+        const obsPct = state.totalRolls > 0 ? ((count / state.totalRolls) * 100).toFixed(2) : '0.00';
+        const theoPct = (((THEORETICAL[state.mode] && THEORETICAL[state.mode].probs[k]) || 0) * 100).toFixed(2);
+        csv += `"${k}",${count},${obsPct},${theoPct}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `주사위확률실험_${state.mode}_${state.totalRolls}회.csv`;
+      link.click();
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
